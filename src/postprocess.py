@@ -90,28 +90,20 @@ def search_book(
 ) -> list[dict]:
     """Search for a book by title/text via a bibliographic API.
 
-    Parameters
-    ----------
-    query : str
-        Search terms (title, author, etc.).
-    provider : str
-        API provider — one of ``SUPPORTED_PROVIDERS``.
-    timeout : int
-        HTTP request timeout in seconds.
+    Args:
+        query: Search terms (title, author, etc.).
+        provider: API provider -- one of ``SUPPORTED_PROVIDERS``.
+        timeout: HTTP request timeout in seconds.
 
-    Returns
-    -------
-    list[dict]
-        Each dict contains keys: ``title``, ``author``, ``isbn``, ``provider``.
+    Returns:
+        List of dicts, each containing keys: ``title``, ``author``,
+        ``isbn``, ``provider``.
 
-    Raises
-    ------
-    ValueError
-        If *query* is empty/None or *provider* is unsupported.
-    TimeoutError
-        On request timeout.
-    ConnectionError
-        On HTTP errors (4xx/5xx).
+    Raises:
+        ValueError: If *query* is empty/None or *provider* is
+            unsupported.
+        TimeoutError: On request timeout.
+        ConnectionError: On HTTP errors (4xx/5xx).
     """
     _validate_query(query)
     _validate_provider(provider)
@@ -156,28 +148,18 @@ def get_book_metadata(
 ) -> dict | None:
     """Retrieve book metadata by ISBN.
 
-    Parameters
-    ----------
-    isbn : str
-        The ISBN (10 or 13) to look up.
-    provider : str
-        API provider — one of ``SUPPORTED_PROVIDERS``.
-    timeout : int
-        HTTP request timeout in seconds.
+    Args:
+        isbn: The ISBN (10 or 13) to look up.
+        provider: API provider -- one of ``SUPPORTED_PROVIDERS``.
+        timeout: HTTP request timeout in seconds.
 
-    Returns
-    -------
-    dict | None
+    Returns:
         Book metadata dict, or ``None`` if not found.
 
-    Raises
-    ------
-    ValueError
-        If *isbn* is empty/None.
-    TimeoutError
-        On request timeout.
-    ConnectionError
-        On HTTP errors other than 404.
+    Raises:
+        ValueError: If *isbn* is empty/None.
+        TimeoutError: On request timeout.
+        ConnectionError: On HTTP errors other than 404.
     """
     if isbn is None:
         raise ValueError("isbn must not be None")

@@ -73,20 +73,15 @@ def _validate_image(image: np.ndarray | None) -> None:
 def init_ocr_engine(engine_name: str) -> object:
     """Initialise and return an OCR engine.
 
-    Parameters
-    ----------
-    engine_name:
-        One of ``"paddleocr"``, ``"trocr"``, or ``"tesseract"``.
+    Args:
+        engine_name: One of ``"paddleocr"``, ``"trocr"``, or
+            ``"tesseract"``.
 
-    Returns
-    -------
-    object
+    Returns:
         The initialised engine (type depends on *engine_name*).
 
-    Raises
-    ------
-    ValueError
-        If *engine_name* is not in :data:`SUPPORTED_ENGINES`.
+    Raises:
+        ValueError: If *engine_name* is not in :data:`SUPPORTED_ENGINES`.
     """
     global PaddleOCR, TrOCRProcessor, VisionEncoderDecoderModel, pytesseract  # noqa: PLW0603
 
@@ -122,17 +117,13 @@ def recognize_text(
 ) -> list[dict[str, object]]:
     """Run OCR on *image* using *engine* and return results.
 
-    Parameters
-    ----------
-    image:
-        BGR uint8 image (OpenCV convention).
-    engine:
-        An object returned by :func:`init_ocr_engine`.
+    Args:
+        image: BGR uint8 image (OpenCV convention).
+        engine: An object returned by :func:`init_ocr_engine`.
 
-    Returns
-    -------
-    list[dict]
-        Each dict contains ``"text"`` (str) and ``"confidence"`` (float 0-1).
+    Returns:
+        List of dicts, each containing ``"text"`` (str) and
+        ``"confidence"`` (float 0-1).
     """
     _validate_image(image)
     image = image.copy()
@@ -219,18 +210,14 @@ def compare_engines(
 ) -> dict[str, list[dict[str, object]]]:
     """Run OCR with multiple engines and return comparative results.
 
-    Parameters
-    ----------
-    image:
-        BGR uint8 image.
-    engine_names:
-        List of engine names (each must be in :data:`SUPPORTED_ENGINES`).
+    Args:
+        image: BGR uint8 image.
+        engine_names: List of engine names (each must be in
+            :data:`SUPPORTED_ENGINES`).
 
-    Returns
-    -------
-    dict
-        ``{engine_name: [results]}`` where each result is a dict with
-        ``"text"`` and ``"confidence"``.
+    Returns:
+        Dict ``{engine_name: [results]}`` where each result is a dict
+        with ``"text"`` and ``"confidence"``.
     """
     _validate_image(image)
     results: dict[str, list[dict[str, object]]] = {}

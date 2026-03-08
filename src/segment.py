@@ -30,43 +30,37 @@ def detect_vertical_lines(
 ) -> list[tuple]:
     """Detect quasi-vertical lines in a BGR image using Canny + HoughLinesP.
 
-    Parameters
-    ----------
-    image : np.ndarray
-        Input BGR image (uint8).
-    canny_low : int
-        Lower threshold for Canny edge detector (default 50).
-    canny_high : int
-        Upper threshold for Canny edge detector (default 150).
-    hough_threshold : int
-        Accumulator threshold for HoughLinesP (default 50). §R9
-    min_line_length : int
-        Minimum line length in pixels for HoughLinesP (default 50). §R9
-    max_line_gap : int
-        Maximum gap between line segments for HoughLinesP (default 10). §R9
-    angle_threshold : float
-        Maximum angle in degrees from vertical to keep a line (default 15.0).
+    Args:
+        image: Input BGR image (uint8).
+        canny_low: Lower threshold for Canny edge detector (default 50).
+        canny_high: Upper threshold for Canny edge detector (default 150).
+        hough_threshold: Accumulator threshold for HoughLinesP (default 50).
+        min_line_length: Minimum line length in pixels for HoughLinesP
+            (default 50).
+        max_line_gap: Maximum gap between line segments for HoughLinesP
+            (default 10).
+        angle_threshold: Maximum angle in degrees from vertical to keep a
+            line (default 15.0).
 
-    Returns
-    -------
-    list[tuple]
+    Returns:
         List of (x1, y1, x2, y2) tuples sorted by x position (ascending).
 
-    Raises
-    ------
-    ValueError
-        If *image* is None or empty.
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
     """
     if image is None:
         raise ValueError("Input image must not be None.")
     if not isinstance(image, np.ndarray) or image.size == 0:
         raise ValueError("Input image must be a non-empty numpy array.")
+    if image.ndim != 3:
+        raise ValueError(
+            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
+        )
+    if image.dtype != np.uint8:
+        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
 
     # Convert to grayscale for edge detection
-    if image.ndim == 3:
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    else:
-        gray = image.copy()
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     edges = cv2.Canny(gray, canny_low, canny_high)
 
@@ -104,27 +98,27 @@ def split_spines(
 ) -> list[np.ndarray]:
     """Split an image into vertical strips based on detected line positions.
 
-    Parameters
-    ----------
-    image : np.ndarray
-        Input BGR image (uint8).
-    lines : list[tuple]
-        List of (x1, y1, x2, y2) line coordinates, sorted by x position.
+    Args:
+        image: Input BGR image (uint8).
+        lines: List of (x1, y1, x2, y2) line coordinates, sorted by
+            x position.
 
-    Returns
-    -------
-    list[np.ndarray]
+    Returns:
         List of cropped BGR images (book spine candidates).
 
-    Raises
-    ------
-    ValueError
-        If *image* is None or empty.
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
     """
     if image is None:
         raise ValueError("Input image must not be None.")
     if not isinstance(image, np.ndarray) or image.size == 0:
         raise ValueError("Input image must be a non-empty numpy array.")
+    if image.ndim != 3:
+        raise ValueError(
+            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
+        )
+    if image.dtype != np.uint8:
+        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
 
     if not lines:
         return [image.copy()]
@@ -163,25 +157,25 @@ def segment(image: np.ndarray) -> list[np.ndarray]:
     Orchestrates detect_vertical_lines and split_spines. If no lines
     are detected, returns the entire image as a single crop.
 
-    Parameters
-    ----------
-    image : np.ndarray
-        Input BGR image (uint8).
+    Args:
+        image: Input BGR image (uint8).
 
-    Returns
-    -------
-    list[np.ndarray]
+    Returns:
         List of cropped BGR images (one per detected book spine).
 
-    Raises
-    ------
-    ValueError
-        If *image* is None or empty.
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
     """
     if image is None:
         raise ValueError("Input image must not be None.")
     if not isinstance(image, np.ndarray) or image.size == 0:
         raise ValueError("Input image must be a non-empty numpy array.")
+    if image.ndim != 3:
+        raise ValueError(
+            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
+        )
+    if image.dtype != np.uint8:
+        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
 
     lines = detect_vertical_lines(image)
     crops = split_spines(image, lines)

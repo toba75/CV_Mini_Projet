@@ -14,24 +14,16 @@ import numpy as np
 def load_image(path: str) -> np.ndarray:
     """Load an image from disk in BGR format.
 
-    Parameters
-    ----------
-    path : str
-        Path to the image file.
+    Args:
+        path: Path to the image file.
 
-    Returns
-    -------
-    np.ndarray
+    Returns:
         The loaded image in BGR format (uint8).
 
-    Raises
-    ------
-    ValueError
-        If *path* is None or empty.
-    FileNotFoundError
-        If the file does not exist on disk.
-    ValueError
-        If OpenCV cannot decode the image.
+    Raises:
+        ValueError: If *path* is None or empty, or if OpenCV cannot
+            decode the image.
+        FileNotFoundError: If the file does not exist on disk.
     """
     if path is None:
         raise ValueError("Image path must not be None.")
@@ -59,22 +51,15 @@ def resize_image(image: np.ndarray, max_width: int = 1920) -> np.ndarray:
     The aspect ratio is preserved. If the image is already narrower than
     *max_width*, a copy is returned without modification.
 
-    Parameters
-    ----------
-    image : np.ndarray
-        Input BGR image.
-    max_width : int
-        Maximum allowed width in pixels (default 1920).
+    Args:
+        image: Input BGR image.
+        max_width: Maximum allowed width in pixels (default 1920).
 
-    Returns
-    -------
-    np.ndarray
+    Returns:
         The (possibly resized) image.
 
-    Raises
-    ------
-    ValueError
-        If *image* is None or empty.
+    Raises:
+        ValueError: If *image* is None or empty.
     """
     if image is None:
         raise ValueError("Input image must not be None.")
@@ -103,24 +88,17 @@ def apply_clahe(
     The image is converted from BGR to LAB colour space. CLAHE is applied
     on the L channel, then the image is converted back to BGR.
 
-    Parameters
-    ----------
-    image : np.ndarray
-        Input BGR image (uint8).
-    clip_limit : float
-        Contrast limit for CLAHE (default 2.0).
-    tile_grid_size : tuple
-        Grid size for the CLAHE algorithm (default (8, 8)).
+    Args:
+        image: Input BGR image (uint8).
+        clip_limit: Contrast limit for CLAHE (default 2.0).
+        tile_grid_size: Grid size for the CLAHE algorithm
+            (default (8, 8)).
 
-    Returns
-    -------
-    np.ndarray
+    Returns:
         The contrast-enhanced BGR image.
 
-    Raises
-    ------
-    ValueError
-        If *image* is None or empty.
+    Raises:
+        ValueError: If *image* is None or empty.
     """
     if image is None:
         raise ValueError("Input image must not be None.")
@@ -150,16 +128,12 @@ def apply_clahe(
 def preprocess(path: str) -> np.ndarray:
     """Run the full preprocessing pipeline on an image file.
 
-    Steps: load → resize → CLAHE.
+    Steps: load -> resize -> CLAHE.
 
-    Parameters
-    ----------
-    path : str
-        Path to the image file.
+    Args:
+        path: Path to the image file.
 
-    Returns
-    -------
-    np.ndarray
+    Returns:
         The preprocessed BGR image.
     """
     image = load_image(path)

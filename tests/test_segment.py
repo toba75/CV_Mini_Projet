@@ -74,6 +74,18 @@ class TestDetectVerticalLines:
 
         assert isinstance(lines, list)
 
+    def test_2d_image_raises(self):
+        """Error: ValueError when image is 2D (ndim != 3)."""
+        img = np.full((200, 300), 128, dtype=np.uint8)
+        with pytest.raises(ValueError, match="3 dimensions"):
+            detect_vertical_lines(img)
+
+    def test_wrong_dtype_raises(self):
+        """Error: ValueError when image dtype is not uint8."""
+        img = np.full((200, 300, 3), 128, dtype=np.float32)
+        with pytest.raises(ValueError, match="uint8"):
+            detect_vertical_lines(img)
+
     def test_does_not_modify_input(self):
         """Nominal: input image is not modified in place. §R4"""
         img = np.random.default_rng(42).integers(
@@ -144,6 +156,18 @@ class TestSplitSpines:
         with pytest.raises(ValueError):
             split_spines(np.array([]), [])
 
+    def test_2d_image_raises(self):
+        """Error: ValueError when image is 2D (ndim != 3)."""
+        img = np.full((200, 300), 128, dtype=np.uint8)
+        with pytest.raises(ValueError, match="3 dimensions"):
+            split_spines(img, [])
+
+    def test_wrong_dtype_raises(self):
+        """Error: ValueError when image dtype is not uint8."""
+        img = np.full((200, 300, 3), 128, dtype=np.float32)
+        with pytest.raises(ValueError, match="uint8"):
+            split_spines(img, [])
+
 
 class TestSegment:
     """Tests for segment orchestration function."""
@@ -183,6 +207,18 @@ class TestSegment:
         """Error: ValueError when image is empty."""
         with pytest.raises(ValueError):
             segment(np.array([]))
+
+    def test_2d_image_raises(self):
+        """Error: ValueError when image is 2D (ndim != 3)."""
+        img = np.full((200, 300), 128, dtype=np.uint8)
+        with pytest.raises(ValueError, match="3 dimensions"):
+            segment(img)
+
+    def test_wrong_dtype_raises(self):
+        """Error: ValueError when image dtype is not uint8."""
+        img = np.full((200, 300, 3), 128, dtype=np.float32)
+        with pytest.raises(ValueError, match="uint8"):
+            segment(img)
 
     def test_small_image(self):
         """Edge: very small image returns at least 1 crop."""
