@@ -204,6 +204,78 @@ def _recognize_tesseract(
     return results
 
 
+def recognize_text_unified(
+    crop: np.ndarray,
+    engine: str = "paddleocr",
+) -> dict[str, object]:
+    """Unified OCR interface: run OCR on a single crop.
+
+    Args:
+        crop: BGR uint8 image (oriented text crop).
+        engine: Engine name — one of :data:`SUPPORTED_ENGINES`.
+
+    Returns:
+        Dict with keys ``"text"`` (str), ``"confidence"`` (float 0-1),
+        and ``"engine"`` (str).
+
+    Raises:
+        ValueError: If *crop* is invalid or *engine* is unknown.
+    """
+    _validate_image(crop)
+    if engine not in SUPPORTED_ENGINES:
+        raise ValueError(
+            f"Unknown OCR engine '{engine}'. "
+            f"Supported: {SUPPORTED_ENGINES}"
+        )
+    engine_obj = init_ocr_engine(engine)
+    results = recognize_text(crop, engine_obj)
+    if not results:
+        return {"text": "", "confidence": 0.0, "engine": engine}
+    text = " ".join(r["text"] for r in results)
+    confidence = sum(float(r["confidence"]) for r in results) / len(results)
+    return {"text": text, "confidence": confidence, "engine": engine}
+
+
+def recognize_batch(
+    crops: list[np.ndarray],
+    engine: str = "paddleocr",
+) -> list[dict[str, object]]:
+    """Run OCR on a list of crops, reusing a single engine instance.
+
+    Args:
+        crops: List of BGR uint8 images.
+        engine: Engine name — one of :data:`SUPPORTED_ENGINES`.
+
+    Returns:
+        List of dicts, one per crop, each with keys ``"text"``,
+        ``"confidence"``, ``"engine"``.
+
+    Raises:
+        ValueError: If any crop is invalid or *engine* is unknown.
+    """
+    if engine not in SUPPORTED_ENGINES:
+        raise ValueError(
+            f"Unknown OCR engine '{engine}'. "
+            f"Supported: {SUPPORTED_ENGINES}"
+        )
+    if not crops:
+        return []
+    engine_obj = init_ocr_engine(engine)
+    results: list[dict[str, object]] = []
+    for crop in crops:
+        _validate_image(crop)
+        ocr_results = recognize_text(crop, engine_obj)
+        if not ocr_results:
+            results.append({"text": "", "confidence": 0.0, "engine": engine})
+        else:
+            text = " ".join(r["text"] for r in ocr_results)
+            confidence = sum(float(r["confidence"]) for r in ocr_results) / len(
+                ocr_results
+            )
+            results.append({"text": text, "confidence": confidence, "engine": engine})
+    return results
+
+
 def compare_engines(
     image: np.ndarray,
     engine_names: list[str],
