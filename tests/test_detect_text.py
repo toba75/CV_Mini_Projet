@@ -45,11 +45,13 @@ def _mock_detector_no_results() -> MagicMock:
 class TestInitDetector:
     """Tests for init_detector function."""
 
-    @patch("src.detect_text.PaddleOCR")
-    def test_init_detector_returns_object(self, mock_paddle_cls):
+    def test_init_detector_returns_object(self):
         """Nominal: init_detector returns a functional detector object."""
-        mock_paddle_cls.return_value = MagicMock()
-        detector = init_detector("paddleocr")
+        mock_paddle_cls = MagicMock()
+        mock_module = MagicMock()
+        mock_module.PaddleOCR = mock_paddle_cls
+        with patch.dict("sys.modules", {"paddleocr": mock_module}):
+            detector = init_detector("paddleocr")
 
         assert detector is not None
         mock_paddle_cls.assert_called_once()
