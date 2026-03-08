@@ -4,7 +4,14 @@ import numpy as np
 import cv2
 import pytest
 
-from src.preprocess import apply_clahe, load_image, preprocess, resize_image
+from src.preprocess import (
+    apply_clahe,
+    correct_perspective,
+    detect_shelf_contour,
+    load_image,
+    preprocess,
+    resize_image,
+)
 
 
 class TestLoadImage:
@@ -183,3 +190,147 @@ class TestPreprocess:
         """Error: FileNotFoundError propagated from load_image."""
         with pytest.raises(FileNotFoundError):
             preprocess("does_not_exist.png")
+
+
+# ---------------------------------------------------------------------------
+# Helper: create a synthetic warped quadrilateral image
+# ---------------------------------------------------------------------------
+
+def _make_synthetic_quad_image(
+    width: int = 400,
+    height: int = 400,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return (image, corners) where *image* contains a bright filled
+    quadrilateral on a black background.  *corners* are the 4 vertices in
+    order: top-left, top-right, bottom-right, bottom-left.
+    """
+    img = np.zeros((height, width, 3), dtype=np.uint8)
+    # Define a quadrilateral (slightly trapezoidal)
+    tl = [80, 60]
+    tr = [320, 70]
+    br = [340, 340]
+    bl = [60, 330]
+    corners = np.array([tl, tr, br, bl], dtype=np.float32)
+    pts = corners.astype(np.int32).reshape((-1, 1, 2))
+    cv2.fillPoly(img, [pts], color=(255, 255, 255))
+    return img, corners
+
+
+class TestDetectShelfContour:
+    """Tests for detect_shelf_contour function."""
+
+    def test_returns_four_points_on_quad_image(self):
+        """Nominal: returns array of shape (4, 2) for image with clear quad."""
+        img, _ = _make_synthetic_quad_image()
+        result = detect_shelf_contour(img)
+
+        assert result is not None
+        assert isinstance(result, np.ndarray)
+        assert result.shape == (4, 2)
+
+    def test_returns_none_on_uniform_image(self):
+        """Edge: returns None when no contour is detectable."""
+        img = np.full((300, 400, 3), 128, dtype=np.uint8)
+        result = detect_shelf_contour(img)
+
+        assert result is None
+
+    def test_none_image_raises(self):
+        """Error: ValueError when image is None."""
+        with pytest.raises(ValueError):
+            detect_shelf_contour(None)
+
+    def test_empty_image_raises(self):
+        """Error: ValueError when image is empty."""
+        with pytest.raises(ValueError):
+            detect_shelf_contour(np.array([]))
+
+    def test_wrong_ndim_raises(self):
+        """Error: ValueError when image is 2D."""
+        with pytest.raises(ValueError, match="3 dimensions"):
+            detect_shelf_contour(np.zeros((100, 100), dtype=np.uint8))
+
+    def test_wrong_dtype_raises(self):
+        """Error: ValueError when image dtype is not uint8."""
+        with pytest.raises(ValueError, match="uint8"):
+            detect_shelf_contour(np.zeros((100, 100, 3), dtype=np.float32))
+
+
+class TestCorrectPerspective:
+    """Tests for correct_perspective function."""
+
+    def test_corrects_known_warp(self):
+        """Nominal: correct_perspective straightens a synthetically warped image.
+
+        Creates a known rectangle, applies a perspective warp to distort it,
+        then verifies that correct_perspective (given the warped corners)
+        produces an image with reasonable dimensions.
+        """
+        # Create a clean rectangle image
+        src_img = np.zeros((300, 400, 3), dtype=np.uint8)
+        src_img[50:250, 50:350] = (200, 180, 160)
+
+        # Define source rectangle corners and destination (warped) corners
+        src_pts = np.array(
+            [[50, 50], [350, 50], [350, 250], [50, 250]], dtype=np.float32
+        )
+        dst_pts = np.array(
+            [[70, 80], [330, 60], [360, 270], [40, 260]], dtype=np.float32
+        )
+
+        # Warp the image to simulate perspective distortion
+        M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+        warped = cv2.warpPerspective(src_img, M, (400, 300))
+
+        # Now correct_perspective should straighten using the warped corners
+        result = correct_perspective(warped, corners=dst_pts)
+
+        assert isinstance(result, np.ndarray)
+        assert result.ndim == 3
+        assert result.shape[0] > 0 and result.shape[1] > 0
+
+    def test_returns_original_when_no_contour(self):
+        """Edge: returns original image unchanged when no corners and no
+        detectable contour.
+        """
+        img = np.full((200, 300, 3), 128, dtype=np.uint8)
+        result = correct_perspective(img, corners=None)
+
+        np.testing.assert_array_equal(result, img)
+
+    def test_output_dimensions_reasonable(self):
+        """Nominal: output image has non-zero width and height."""
+        img, corners = _make_synthetic_quad_image()
+        result = correct_perspective(img, corners=corners)
+
+        assert result.shape[0] > 0
+        assert result.shape[1] > 0
+        assert result.ndim == 3
+
+    def test_does_not_modify_input(self):
+        """Nominal: input image is not modified in place."""
+        img, corners = _make_synthetic_quad_image()
+        original = img.copy()
+        correct_perspective(img, corners=corners)
+
+        np.testing.assert_array_equal(img, original)
+
+    def test_none_image_raises(self):
+        """Error: ValueError when image is None."""
+        with pytest.raises(ValueError):
+            correct_perspective(None)
+
+    def test_empty_image_raises(self):
+        """Error: ValueError when image is empty."""
+        with pytest.raises(ValueError):
+            correct_perspective(np.array([]))
+
+    def test_wrong_ndim_raises(self):
+        """Error: ValueError when image is 2D."""
+        with pytest.raises(ValueError, match="3 dimensions"):
+            correct_perspective(np.zeros((100, 100), dtype=np.uint8))
+
+    def test_wrong_dtype_raises(self):
+        """Error: ValueError when image dtype is not uint8."""
+        with pytest.raises(ValueError, match="uint8"):
+            correct_perspective(np.zeros((100, 100, 3), dtype=np.float32))
