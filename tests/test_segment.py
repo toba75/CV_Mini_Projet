@@ -503,13 +503,14 @@ class TestMergeThinSpines:
 
     def test_merges_adjacent_thin_crops(self):
         """Nominal: adjacent thin crops are merged into one."""
-        # Image width = 500, min_width_ratio = 0.02 → min_width = 10
+        # total_width = 5+5+100 = 110, ratio=0.1 → min_width=11
+        # thin crops (5px) < 11 → thin, wide (100px) >= 11 → not thin
         thin1 = np.full((200, 5, 3), 100, dtype=np.uint8)
         thin2 = np.full((200, 5, 3), 120, dtype=np.uint8)
         wide = np.full((200, 100, 3), 150, dtype=np.uint8)
         crops = [thin1, thin2, wide]
 
-        result = merge_thin_spines(crops, min_width_ratio=0.02)
+        result = merge_thin_spines(crops, min_width_ratio=0.1)
 
         # thin1 + thin2 should be merged, wide stays
         assert len(result) < len(crops)
@@ -523,18 +524,20 @@ class TestMergeThinSpines:
         crop2 = np.full((200, 80, 3), 150, dtype=np.uint8)
         crops = [crop1, crop2]
 
-        result = merge_thin_spines(crops, min_width_ratio=0.02)
+        result = merge_thin_spines(crops, min_width_ratio=0.1)
 
         assert len(result) == 2
 
     def test_all_thin_crops_merged_into_one(self):
         """Edge: all crops are thin — they merge into a single crop."""
+        # total_width = 3+4+3 = 10, ratio=0.5 → min_width=5
+        # All crops (3, 4, 3) < 5 → all thin → merged into one
         thin1 = np.full((200, 3, 3), 100, dtype=np.uint8)
         thin2 = np.full((200, 4, 3), 120, dtype=np.uint8)
         thin3 = np.full((200, 3, 3), 140, dtype=np.uint8)
         crops = [thin1, thin2, thin3]
 
-        result = merge_thin_spines(crops, min_width_ratio=0.02)
+        result = merge_thin_spines(crops, min_width_ratio=0.5)
 
         assert len(result) == 1
         assert result[0].shape[1] == 10
@@ -548,7 +551,7 @@ class TestMergeThinSpines:
         """Edge: single thin crop is returned as-is (nothing to merge with)."""
         thin = np.full((200, 3, 3), 100, dtype=np.uint8)
 
-        result = merge_thin_spines([thin], min_width_ratio=0.02)
+        result = merge_thin_spines([thin], min_width_ratio=0.5)
 
         assert len(result) == 1
 
@@ -558,7 +561,7 @@ class TestMergeThinSpines:
         thin2 = np.full((200, 5, 3), 120, dtype=np.uint8)
         crops = [thin1, thin2]
 
-        result = merge_thin_spines(crops, min_width_ratio=0.02)
+        result = merge_thin_spines(crops, min_width_ratio=0.6)
 
         assert result[0].shape[0] == 200
 
