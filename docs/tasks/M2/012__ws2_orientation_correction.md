@@ -1,6 +1,6 @@
 # Tâche — Implémenter la correction d'orientation automatique du texte
 
-Statut : TODO
+Statut : DONE
 Ordre : 012
 Workstream : WS2
 Milestone : M2
@@ -34,29 +34,29 @@ Implémenter dans `src/detect_text.py` une correction d'orientation automatique 
 - Intégration dans le flux : segmentation → détection texte → correction orientation → OCR.
 
 ## Critères d'acceptation
-- [ ] `estimate_text_angle` retourne un angle cohérent pour du texte vertical (~90° ou ~-90°)
-- [ ] `estimate_text_angle` retourne ~0° pour du texte horizontal
-- [ ] `estimate_text_angle` gère une liste vide de bboxes (retourne 0.0)
-- [ ] `rotate_image` redresse correctement une image avec un angle connu (vérifiable sur image synthétique)
-- [ ] `rotate_image` ne coupe pas le contenu de l'image (dimensions ajustées)
-- [ ] `correct_orientation` ne fait rien si l'angle est inférieur au seuil
-- [ ] `correct_orientation` redresse le texte vertical pour le rendre horizontal
-- [ ] Validation des entrées : `ValueError` sur image None ou vide
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords (pas de bboxes, texte déjà horizontal, texte à 90°)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `estimate_text_angle` retourne un angle cohérent pour du texte vertical (~90° ou ~-90°)
+- [x] `estimate_text_angle` retourne ~0° pour du texte horizontal
+- [x] `estimate_text_angle` gère une liste vide de bboxes (retourne 0.0)
+- [x] `rotate_image` redresse correctement une image avec un angle connu (vérifiable sur image synthétique)
+- [x] `rotate_image` ne coupe pas le contenu de l'image (dimensions ajustées)
+- [x] `correct_orientation` ne fait rien si l'angle est inférieur au seuil
+- [x] `correct_orientation` redresse le texte vertical pour le rendre horizontal
+- [x] Validation des entrées : `ValueError` sur image None ou vide
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords (pas de bboxes, texte déjà horizontal, texte à 90°)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/012-orientation-correction` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/012-orientation-correction` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS2] #012 RED: tests correction orientation texte`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS2] #012 GREEN: correction d'orientation automatique implémentée`.
+- [x] Branche `milestone/M2` utilisée pour le développement.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS2] #012 RED: tests correction orientation texte`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS2] #012 GREEN: correction d'orientation automatique implémentée`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS2] #012 — Correction orientation`.

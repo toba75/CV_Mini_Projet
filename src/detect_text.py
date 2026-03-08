@@ -1,5 +1,8 @@
 """Text region detection for the ShelfScan pipeline."""
 
+import math
+
+import cv2
 import numpy as np
 
 # PaddleOCR in det-only mode (rec=False) does not return a confidence score
@@ -159,3 +162,118 @@ def detect_text_on_spines(
         results.append(regions)
 
     return results
+
+
+def estimate_text_angle(bboxes: list[dict]) -> float:
+    """Estimate the dominant text angle from oriented bounding boxes.
+
+    Uses the median angle of the top edge (first two points) of each bbox.
+
+    Args:
+        bboxes: List of dicts with key ``bbox`` (4-point polygon).
+
+    Returns:
+        Estimated angle in degrees. Returns 0.0 for an empty list.
+    """
+    if not bboxes:
+        return 0.0
+
+    angles: list[float] = []
+    for box in bboxes:
+        pts = box["bbox"]
+        # Top edge: from pts[0] to pts[1]
+        dx = pts[1][0] - pts[0][0]
+        dy = pts[1][1] - pts[0][1]
+        angle = math.degrees(math.atan2(dy, dx))
+        angles.append(angle)
+
+    # Use median for robustness
+    angles.sort()
+    n = len(angles)
+    if n % 2 == 1:
+        return angles[n // 2]
+    return (angles[n // 2 - 1] + angles[n // 2]) / 2.0
+
+
+def _validate_image(image: np.ndarray) -> None:
+    """Validate that *image* is a proper BGR numpy array.
+
+    Raises:
+        ValueError: If image is None, not an ndarray, empty, not 3-D, or not uint8.
+    """
+    if image is None:
+        raise ValueError("Image cannot be None.")
+    if not isinstance(image, np.ndarray):
+        raise ValueError("Image must be a numpy array.")
+    if image.size == 0:
+        raise ValueError("Image cannot be empty.")
+    if image.ndim != 3:
+        raise ValueError("Image must be 3-dimensional (H, W, C).")
+    if image.dtype != np.uint8:
+        raise ValueError("Image must be uint8.")
+
+
+def rotate_image(image: np.ndarray, angle: float) -> np.ndarray:
+    """Rotate *image* around its center by *angle* degrees.
+
+    Adjusts the output dimensions so that no content is clipped.
+
+    Args:
+        image: Input BGR image.
+        angle: Rotation angle in degrees (counter-clockwise positive).
+
+    Returns:
+        Rotated image (BGR, uint8).
+
+    Raises:
+        ValueError: If *image* is None or invalid.
+    """
+    _validate_image(image)
+
+    h, w = image.shape[:2]
+    cx, cy = w / 2.0, h / 2.0
+
+    rot_mat = cv2.getRotationMatrix2D((cx, cy), angle, 1.0)
+
+    # Compute new bounding dimensions to avoid clipping
+    cos_a = abs(rot_mat[0, 0])
+    sin_a = abs(rot_mat[0, 1])
+    new_w = int(math.ceil(h * sin_a + w * cos_a))
+    new_h = int(math.ceil(h * cos_a + w * sin_a))
+
+    # Adjust the rotation matrix for the new center
+    rot_mat[0, 2] += (new_w / 2.0) - cx
+    rot_mat[1, 2] += (new_h / 2.0) - cy
+
+    return cv2.warpAffine(image, rot_mat, (new_w, new_h))
+
+
+def correct_orientation(
+    crop: np.ndarray,
+    bboxes: list[dict],
+    angle_threshold: float = 2.0,
+) -> np.ndarray:
+    """Correct the orientation of a spine crop based on detected text angles.
+
+    Estimates the dominant text angle and rotates the crop if the angle
+    exceeds *angle_threshold*.
+
+    Args:
+        crop: Input BGR image (spine crop).
+        bboxes: List of detected text region dicts with ``bbox`` key.
+        angle_threshold: Minimum angle (degrees) to trigger rotation.
+
+    Returns:
+        Orientation-corrected image, or the original crop if the angle
+        is below the threshold.
+
+    Raises:
+        ValueError: If *crop* is None or invalid.
+    """
+    _validate_image(crop)
+
+    angle = estimate_text_angle(bboxes)
+    if abs(angle) < angle_threshold:
+        return crop.copy()
+
+    return rotate_image(crop, -angle)
