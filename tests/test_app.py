@@ -286,3 +286,140 @@ class TestMainImportable:
     def test_main_importable(self):
         from src.app import main
         assert callable(main)
+
+
+# ---------------------------------------------------------------------------
+# Manual correction helpers tests (task 026)
+# ---------------------------------------------------------------------------
+def _make_pipeline_result(books=None):
+    """Crée un résultat de pipeline minimal pour les tests."""
+    if books is None:
+        books = [
+            {
+                "spine_id": 1,
+                "raw_text": "Le Ptit Prince",
+                "title": "Le Ptit Prince",
+                "author": "St-Exupéry",
+                "isbn": "978-2070612758",
+                "confidence": 0.85,
+            },
+            {
+                "spine_id": 2,
+                "raw_text": "Les Misrables",
+                "title": "Les Misrables",
+                "author": "V. Hugo",
+                "isbn": None,
+                "confidence": 0.72,
+            },
+        ]
+    return {"books": books}
+
+
+class TestApplyManualCorrections:
+    """Tests pour apply_manual_corrections."""
+
+    def test_apply_manual_corrections_nominal(self):
+        from src.app import apply_manual_corrections
+
+        result = _make_pipeline_result()
+        corrections = {
+            1: {"title": "Le Petit Prince", "author": "Antoine de Saint-Exupéry"},
+        }
+        corrected = apply_manual_corrections(result, corrections)
+
+        # Le résultat corrigé doit avoir les nouvelles valeurs
+        book1 = corrected["books"][0]
+        assert book1["title"] == "Le Petit Prince"
+        assert book1["author"] == "Antoine de Saint-Exupéry"
+        assert book1["manually_corrected"] is True
+
+        # Le livre non corrigé garde ses valeurs d'origine
+        book2 = corrected["books"][1]
+        assert book2["title"] == "Les Misrables"
+        assert book2["author"] == "V. Hugo"
+        assert book2.get("manually_corrected") is not True
+
+    def test_apply_manual_corrections_unknown_spine_id(self):
+        from src.app import apply_manual_corrections
+
+        result = _make_pipeline_result()
+        corrections = {
+            999: {"title": "Fantôme"},
+        }
+        # Les spine_id inconnus sont ignorés silencieusement
+        corrected = apply_manual_corrections(result, corrections)
+        assert len(corrected["books"]) == 2
+        # Aucun livre ne doit être marqué comme corrigé
+        for book in corrected["books"]:
+            assert book.get("manually_corrected") is not True
+
+    def test_apply_manual_corrections_empty_corrections(self):
+        from src.app import apply_manual_corrections
+
+        result = _make_pipeline_result()
+        corrected = apply_manual_corrections(result, {})
+
+        # Résultat identique à l'original
+        assert len(corrected["books"]) == 2
+        for book in corrected["books"]:
+            assert book.get("manually_corrected") is not True
+
+    def test_apply_manual_corrections_does_not_mutate_original(self):
+        from src.app import apply_manual_corrections
+
+        result = _make_pipeline_result()
+        original_title = result["books"][0]["title"]
+        corrections = {1: {"title": "Nouveau Titre"}}
+        apply_manual_corrections(result, corrections)
+
+        # L'original ne doit pas être modifié
+        assert result["books"][0]["title"] == original_title
+
+
+class TestPrepareEditableDataframe:
+    """Tests pour prepare_editable_dataframe."""
+
+    def test_prepare_editable_dataframe(self):
+        from src.app import prepare_editable_dataframe
+
+        result = _make_pipeline_result(
+            books=[
+                {
+                    "spine_id": 1,
+                    "raw_text": "Le Petit Prince",
+                    "title": "Le Petit Prince",
+                    "author": "Saint-Exupéry",
+                    "isbn": "978-2070612758",
+                    "confidence": 0.95,
+                    "manually_corrected": True,
+                },
+                {
+                    "spine_id": 2,
+                    "raw_text": "Les Misérables",
+                    "title": "Les Misérables",
+                    "author": "Victor Hugo",
+                    "isbn": None,
+                    "confidence": 0.72,
+                },
+            ]
+        )
+        df = prepare_editable_dataframe(result)
+
+        assert isinstance(df, pd.DataFrame)
+        expected_cols = {"Titre", "Auteur", "ISBN", "Confiance", "Modifié"}
+        assert expected_cols.issubset(set(df.columns)), (
+            f"Colonnes attendues {expected_cols}, obtenues {set(df.columns)}"
+        )
+        assert len(df) == 2
+        # Le premier livre est marqué comme modifié
+        assert df.iloc[0]["Modifié"] is True
+        # Le deuxième livre n'est pas modifié
+        assert df.iloc[1]["Modifié"] is False
+
+    def test_prepare_editable_dataframe_empty(self):
+        from src.app import prepare_editable_dataframe
+
+        result = {"books": []}
+        df = prepare_editable_dataframe(result)
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 0
