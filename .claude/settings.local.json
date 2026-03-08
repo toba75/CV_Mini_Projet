@@ -13,7 +13,20 @@
       "Bash(.venv/Scripts/python.exe -m pip install \"albumentations<2\")",
       "Bash(.venv/Scripts/python.exe -c \"import cv2, PIL, paddle, paddleocr, torch, torchvision, transformers, streamlit, pandas, rapidfuzz, requests, editdistance; print\\(''All imports OK''\\); print\\(f''torch {torch.__version__}, CUDA: {torch.cuda.is_available\\(\\)}''\\)\")",
       "Bash(.venv/Scripts/python.exe -c \"import torch; print\\(torch.__version__\\)\")",
-      "Bash(.venv/Scripts/python.exe -c \"import torch; import cv2, PIL, paddle, paddleocr, torchvision, transformers, streamlit, pandas, rapidfuzz, requests, editdistance; print\\(''All imports OK''\\); print\\(f''torch {torch.__version__}, CUDA: {torch.cuda.is_available\\(\\)}''\\)\")"
+      "Bash(.venv/Scripts/python.exe -c \"import torch; import cv2, PIL, paddle, paddleocr, torchvision, transformers, streamlit, pandas, rapidfuzz, requests, editdistance; print\\(''All imports OK''\\); print\\(f''torch {torch.__version__}, CUDA: {torch.cuda.is_available\\(\\)}''\\)\")",
+      "Bash(.venv/Scripts/python.exe --version)",
+      "Bash(.venv/Scripts/pip.exe list --format=columns)",
+      "Bash(.venv/Scripts/python.exe -c \"import cv2; print\\(''OpenCV'', cv2.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import torch; print\\(''PyTorch'', torch.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import paddleocr; print\\(''PaddleOCR OK''\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import pytesseract; print\\(''Tesseract OK''\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import streamlit; print\\(''Streamlit'', streamlit.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import transformers; print\\(''Transformers'', transformers.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import pandas; print\\(''Pandas'', pandas.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import rapidfuzz; print\\(''RapidFuzz OK''\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import pytest; print\\(''Pytest'', pytest.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import ruff; print\\(''Ruff OK''\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import editdistance; print\\(''Editdistance OK''\\)\")"
     ]
   }
 }
