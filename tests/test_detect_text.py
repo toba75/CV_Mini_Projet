@@ -7,10 +7,13 @@ import pytest
 
 from src.detect_text import (
     DEFAULT_DET_CONFIDENCE,
+    correct_orientation,
     detect_text_on_spines,
     detect_text_regions,
+    estimate_text_angle,
     group_text_lines,
     init_detector,
+    rotate_image,
 )
 
 
@@ -350,3 +353,111 @@ class TestDetectTextOnSpines:
         """Error: None crops raises ValueError."""
         with pytest.raises(ValueError):
             detect_text_on_spines(None)
+
+
+# ---------------------------------------------------------------------------
+# Tests — estimate_text_angle (Task 012)
+# ---------------------------------------------------------------------------
+
+class TestEstimateTextAngle:
+    """Tests for estimate_text_angle function."""
+
+    def test_horizontal_text_near_zero(self):
+        """Nominal: horizontal bboxes yield angle ~0 degrees."""
+        bboxes = [
+            {"bbox": [[10, 20], [100, 20], [100, 40], [10, 40]], "confidence": 0.9},
+            {"bbox": [[10, 60], [100, 60], [100, 80], [10, 80]], "confidence": 0.8},
+        ]
+        angle = estimate_text_angle(bboxes)
+
+        assert abs(angle) < 5.0
+
+    def test_vertical_text_near_90(self):
+        """Nominal: vertical bboxes yield angle ~90 degrees."""
+        # Vertical text: top-left at top, top-right goes down
+        bboxes = [
+            {"bbox": [[20, 10], [20, 100], [40, 100], [40, 10]], "confidence": 0.9},
+        ]
+        angle = estimate_text_angle(bboxes)
+
+        assert abs(abs(angle) - 90.0) < 10.0
+
+    def test_empty_bboxes_returns_zero(self):
+        """Edge: empty list returns 0.0."""
+        angle = estimate_text_angle([])
+
+        assert angle == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Tests — rotate_image (Task 012)
+# ---------------------------------------------------------------------------
+
+class TestRotateImage:
+    """Tests for rotate_image function."""
+
+    def test_rotation_preserves_content(self):
+        """Nominal: rotated image dimensions are adjusted to not clip content."""
+        img = _make_image(100, 200)
+        rotated = rotate_image(img, 45.0)
+
+        # After 45-degree rotation with adjusted dimensions, the image should
+        # be larger than the original to avoid clipping
+        assert rotated.shape[0] >= img.shape[0]
+        assert rotated.shape[1] >= img.shape[1]
+        assert rotated.ndim == 3
+
+    def test_zero_rotation_same_size(self):
+        """Edge: 0-degree rotation returns image of same size."""
+        img = _make_image(100, 200)
+        rotated = rotate_image(img, 0.0)
+
+        assert rotated.shape == img.shape
+
+    def test_none_raises_valueerror(self):
+        """Error: None image raises ValueError."""
+        with pytest.raises(ValueError):
+            rotate_image(None, 10.0)
+
+
+# ---------------------------------------------------------------------------
+# Tests — correct_orientation (Task 012)
+# ---------------------------------------------------------------------------
+
+class TestCorrectOrientation:
+    """Tests for correct_orientation function."""
+
+    def test_no_rotation_below_threshold(self):
+        """Nominal: no rotation when angle < threshold."""
+        img = _make_image(100, 200)
+        # Horizontal bboxes => angle ~0
+        bboxes = [
+            {"bbox": [[10, 20], [100, 20], [100, 40], [10, 40]], "confidence": 0.9},
+        ]
+
+        result = correct_orientation(img, bboxes, angle_threshold=2.0)
+
+        # Should return same-sized image (no rotation applied)
+        assert result.shape == img.shape
+        np.testing.assert_array_equal(result, img)
+
+    def test_rotation_applied_when_needed(self):
+        """Nominal: rotation applied when angle > threshold."""
+        img = _make_image(100, 200)
+        # Vertical bboxes => angle ~90
+        bboxes = [
+            {"bbox": [[20, 10], [20, 100], [40, 100], [40, 10]], "confidence": 0.9},
+        ]
+
+        result = correct_orientation(img, bboxes, angle_threshold=2.0)
+
+        # Image should be rotated, so dimensions likely differ
+        assert result is not None
+        assert isinstance(result, np.ndarray)
+        # After rotating ~90 degrees, width and height should be swapped approximately
+        assert result.shape[0] != img.shape[0] or result.shape[1] != img.shape[1]
+
+    def test_none_raises_valueerror(self):
+        """Error: None image raises ValueError."""
+        with pytest.raises(ValueError):
+            correct_orientation(None, [])
