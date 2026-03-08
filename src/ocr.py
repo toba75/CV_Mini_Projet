@@ -11,8 +11,12 @@ on invalid data. Images are expected in BGR uint8 format (OpenCV).
 
 from __future__ import annotations
 
+import logging
+
 import cv2
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Lazy imports — heavy dependencies are imported inside functions so that
@@ -34,6 +38,9 @@ SUPPORTED_ENGINES: tuple[str, ...] = ("paddleocr", "trocr", "tesseract")
 
 # TrOCR default model identifier (configurable).
 TROCR_MODEL_NAME: str = "microsoft/trocr-base-printed"
+
+# TrOCR does not expose per-token confidence; use this constant as placeholder.
+TROCR_DEFAULT_CONFIDENCE: float = 1.0
 
 # Tesseract confidence threshold below which entries are discarded.
 TESSERACT_MIN_CONF: int = 0
@@ -157,9 +164,11 @@ def _recognize_paddle(
     result = engine.ocr(image, cls=True)  # type: ignore[union-attr]
     results: list[dict[str, object]] = []
     if result is None:
+        logger.debug("PaddleOCR returned None (no text detected)")
         return results
     for line_group in result:
         if line_group is None:
+            logger.debug("PaddleOCR line_group is None, skipping")
             continue
         for entry in line_group:
             text_conf = entry[1]
@@ -180,8 +189,8 @@ def _recognize_trocr(
     texts = processor.batch_decode(generated_ids, skip_special_tokens=True)
     results: list[dict[str, object]] = []
     for text in texts:
-        # TrOCR does not provide per-token confidence; use 1.0 as placeholder.
-        results.append({"text": str(text), "confidence": 1.0})
+        # TrOCR does not provide per-token confidence; use default placeholder.
+        results.append({"text": str(text), "confidence": TROCR_DEFAULT_CONFIDENCE})
     return results
 
 

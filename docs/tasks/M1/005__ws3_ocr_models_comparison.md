@@ -55,5 +55,5 @@ Implémenter `src/ocr.py` avec une interface unifiée pour exécuter l'OCR via P
 - [x] Critères d'acceptation tous satisfaits.
 - [x] `ruff check src/ tests/` passe sans erreur.
 - [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS3] #005 GREEN: comparaison OCR PaddleOCR/TrOCR/Tesseract`.
+- [x] **Commit GREEN** : `[WS3] #005 GREEN: comparaison OCR PaddleOCR/TrOCR/Tesseract`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS3] #005 — Comparaison modèles OCR`.

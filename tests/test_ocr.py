@@ -146,6 +146,20 @@ class TestRecognizeText:
             assert "confidence" in item
             assert 0.0 <= item["confidence"] <= 1.0
 
+    def test_recognize_text_does_not_modify_input(self) -> None:
+        """Verify that recognize_text does not alter the original image (§R4)."""
+        engine = MagicMock()
+        engine.__class__.__name__ = "PaddleOCR"
+        engine.ocr.return_value = [
+            [
+                [[[0, 0], [100, 0], [100, 30], [0, 30]], ("hello", 0.95)],
+            ]
+        ]
+        image = _make_image()
+        original = image.copy()
+        recognize_text(image, engine)
+        np.testing.assert_array_equal(image, original)
+
     def test_recognize_with_trocr_engine(self) -> None:
         mock_processor = MagicMock()
         mock_model = MagicMock()
