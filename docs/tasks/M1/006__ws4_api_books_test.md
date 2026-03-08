@@ -1,6 +1,6 @@
 # Tâche — Tester l'API bibliographique Google Books / Open Library
 
-Statut : TODO
+Statut : DONE
 Ordre : 006
 Workstream : WS4
 Milestone : M1
@@ -32,27 +32,27 @@ Implémenter un module de requête vers l'API Google Books et/ou Open Library. V
 - Gestion du timeout (défaut 10s) et des réponses vides.
 
 ## Critères d'acceptation
-- [ ] `search_book` retourne une liste de dictionnaires avec les clés `title`, `author`, `isbn`, `provider`
-- [ ] `search_book("Le Petit Prince")` retourne au moins un résultat pertinent (test avec mock)
-- [ ] `search_book` retourne une liste vide pour une requête sans résultat (pas d'exception)
-- [ ] Les erreurs réseau (timeout, 5xx) lèvent des exceptions explicites (`ConnectionError`, `TimeoutError`)
-- [ ] Aucune clé API n'est codée en dur dans le source
-- [ ] Tests utilisent le mocking (pas d'appels réseau réels dans les tests unitaires)
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `search_book` retourne une liste de dictionnaires avec les clés `title`, `author`, `isbn`, `provider`
+- [x] `search_book("Le Petit Prince")` retourne au moins un résultat pertinent (test avec mock)
+- [x] `search_book` retourne une liste vide pour une requête sans résultat (pas d'exception)
+- [x] Les erreurs réseau (timeout, 5xx) lèvent des exceptions explicites (`ConnectionError`, `TimeoutError`)
+- [x] Aucune clé API n'est codée en dur dans le source
+- [x] Tests utilisent le mocking (pas d'appels réseau réels dans les tests unitaires)
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/006-api-books-test` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/006-api-books-test` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS4] #006 RED: tests API bibliographique`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] Branche `task/006-api-books-test` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS4] #006 RED: tests API bibliographique`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
 - [ ] **Commit GREEN** : `[WS4] #006 GREEN: API bibliographique fonctionnelle`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS4] #006 — API bibliographique`.
