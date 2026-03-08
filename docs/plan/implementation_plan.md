@@ -75,8 +75,8 @@ Milestone   │  M1       │  │  M2       │  │  M3       │  │  M4    
 
 ### WS5 — Évaluation & Présentation
 
-- [ ] Prendre 10 premières photos d'étagères variées.
-- [ ] Annoter manuellement les titres visibles sur ces 10 photos (fichier CSV de ground truth).
+- [x] ~~Prendre 10 premières photos d'étagères variées.~~ → 15 photos déjà disponibles dans `data/` (IMG_3046.jpeg à IMG_3061.jpeg).
+- [ ] Annoter manuellement les titres visibles sur ces photos (fichier CSV de ground truth).
 
 ---
 

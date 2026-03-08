@@ -25,10 +25,13 @@ Tu lis un rapport de revue et corriges tous les items identifiés.
 ## Workflow
 
 ### 1. Lire le rapport de revue
-Ouvrir le rapport (chemin fourni dans le prompt) et extraire tous les items (BLOQUANTS, WARNINGS, MINEURS).
+Ouvrir le rapport (chemin fourni dans le prompt). Si le prompt liste explicitement les items à traiter (pré-filtrés par l'orchestrateur), utiliser cette liste. Sinon, extraire tous les items (BLOQUANTS, WARNINGS, MINEURS).
+
+**La pertinence de chaque item a déjà été vérifiée par l'orchestrateur avant transmission.** Ne pas re-questionner la pertinence : corriger tous les items reçus.
 
 ### 2. Trier et planifier
 **Ordre obligatoire** : BLOQUANTS → WARNINGS → MINEURS.
+**Toutes les sévérités sont traitées** : les MINEURS sont corrigés au même titre que les BLOQUANTS — ils ont été jugés pertinents par l'orchestrateur.
 Regrouper par module impacté quand possible.
 
 ### 3. Pour chaque item (ou groupe d'items liés)
