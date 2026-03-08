@@ -84,6 +84,44 @@ class TestModuleImportability:
         )
 
 
+class TestErrorCases:
+    """Verify error scenarios raise expected exceptions."""
+
+    def test_import_nonexistent_module_raises_error(self) -> None:
+        import importlib
+
+        with pytest.raises(ModuleNotFoundError):
+            importlib.import_module("src.nonexistent_module")
+
+
+class TestEdgeCases:
+    """Verify edge cases: source files are non-empty and contain a docstring."""
+
+    SOURCE_FILES = [
+        "preprocess.py",
+        "segment.py",
+        "detect_text.py",
+        "ocr.py",
+        "postprocess.py",
+        "pipeline.py",
+        "__init__.py",
+    ]
+
+    @pytest.mark.parametrize("filename", SOURCE_FILES)
+    def test_source_file_not_empty(self, filename: str) -> None:
+        path = ROOT / "src" / filename
+        content = path.read_text(encoding="utf-8")
+        assert len(content.strip()) > 0, f"src/{filename} is empty"
+
+    @pytest.mark.parametrize("filename", SOURCE_FILES)
+    def test_source_file_has_docstring(self, filename: str) -> None:
+        path = ROOT / "src" / filename
+        content = path.read_text(encoding="utf-8").strip()
+        assert content.startswith('"""') or content.startswith("'''"), (
+            f"src/{filename} does not start with a module-level docstring"
+        )
+
+
 class TestRequirements:
     """Verify that requirements.txt exists and lists key dependencies."""
 
