@@ -4,7 +4,14 @@ import cv2
 import numpy as np
 import pytest
 
-from src.segment import detect_vertical_lines, segment, split_spines
+from src.segment import (
+    crop_spines,
+    detect_vertical_lines,
+    filter_lines,
+    segment,
+    split_spines,
+    split_wide_gaps,
+)
 
 
 class TestDetectVerticalLines:
@@ -227,3 +234,121 @@ class TestSegment:
         crops = segment(img)
 
         assert len(crops) >= 1
+
+
+# ---------------------------------------------------------------------------
+# Task 010 — Refined segmentation
+# ---------------------------------------------------------------------------
+
+
+class TestFilterLines:
+    """Tests for filter_lines function."""
+
+    def test_keeps_long_vertical_lines(self):
+        """Nominal: lines that are long enough and vertical are kept."""
+        # image_height=300, line from y=0 to y=299 → length 299 > 0.3*300=90
+        lines = [(100, 0, 100, 299)]
+        result = filter_lines(lines, image_height=300)
+        assert len(result) == 1
+
+    def test_removes_short_lines(self):
+        """Nominal: lines shorter than min_length_ratio * image_height are removed."""
+        # line from y=0 to y=20 → length 20, threshold = 0.3*300 = 90
+        lines = [(100, 0, 100, 20)]
+        result = filter_lines(lines, image_height=300, min_length_ratio=0.3)
+        assert len(result) == 0
+
+    def test_removes_inclined_lines(self):
+        """Nominal: lines too inclined from vertical are removed."""
+        # dx=100, dy=200 → angle ~26.5° from vertical, threshold=15°
+        lines = [(100, 0, 200, 200)]
+        result = filter_lines(lines, image_height=300, max_angle_deg=15.0)
+        assert len(result) == 0
+
+    def test_keeps_slightly_inclined_lines(self):
+        """Nominal: lines within angle threshold are kept."""
+        # dx=5, dy=250 → angle ~1.15° from vertical
+        lines = [(100, 0, 105, 250)]
+        result = filter_lines(lines, image_height=300, max_angle_deg=15.0)
+        assert len(result) == 1
+
+    def test_empty_lines_returns_empty(self):
+        """Edge: empty input returns empty output."""
+        result = filter_lines([], image_height=300)
+        assert result == []
+
+
+class TestSplitWideGaps:
+    """Tests for split_wide_gaps function."""
+
+    def test_does_not_modify_normal_gaps(self):
+        """Nominal: gaps within threshold are not subdivided."""
+        # x_cuts at 100, 200 → gap = 100, median_width = 100 → 2*100=200 > 100
+        lines = [(100, 0, 100, 299), (200, 0, 200, 299)]
+        result = split_wide_gaps(lines, image_width=400, median_width=100.0)
+        assert len(result) == len(lines)
+
+    def test_inserts_virtual_lines_for_wide_gap(self):
+        """Nominal: a gap > 2*median_width gets subdivided."""
+        # x_cuts at 50 and 350 → gap=300, median_width=50 → threshold=100
+        lines = [(50, 0, 50, 299), (350, 0, 350, 299)]
+        result = split_wide_gaps(lines, image_width=400, median_width=50.0)
+        # Should insert virtual lines to subdivide the gap
+        assert len(result) > len(lines)
+
+    def test_empty_lines_returns_empty(self):
+        """Edge: empty input returns empty output."""
+        result = split_wide_gaps([], image_width=400, median_width=50.0)
+        assert result == []
+
+    def test_single_line_returns_single(self):
+        """Edge: single line has no gap to split."""
+        lines = [(200, 0, 200, 299)]
+        result = split_wide_gaps(lines, image_width=400, median_width=50.0)
+        assert len(result) == 1
+
+
+class TestCropSpines:
+    """Tests for crop_spines function."""
+
+    def test_returns_crops_with_min_width(self):
+        """Nominal: all crops have width >= min_width."""
+        img = np.full((200, 400, 3), 128, dtype=np.uint8)
+        lines = [(100, 0, 100, 199), (250, 0, 250, 199)]
+        crops = crop_spines(img, lines, min_width=20)
+        for crop in crops:
+            assert crop.shape[1] >= 20
+
+    def test_ignores_narrow_crops(self):
+        """Nominal: crops narrower than min_width are excluded."""
+        img = np.full((200, 400, 3), 128, dtype=np.uint8)
+        # Lines at x=5 and x=10 → gap of 5, then x=300 → gap of 290
+        lines = [(5, 0, 5, 199), (10, 0, 10, 199), (300, 0, 300, 199)]
+        crops = crop_spines(img, lines, min_width=20)
+        for crop in crops:
+            assert crop.shape[1] >= 20
+
+    def test_returns_full_image_if_no_lines(self):
+        """Edge: returns full image as single crop when no lines."""
+        img = np.full((200, 400, 3), 128, dtype=np.uint8)
+        crops = crop_spines(img, [], min_width=20)
+        assert len(crops) == 1
+        assert crops[0].shape[1] == 400
+
+    def test_covers_full_width(self):
+        """Nominal: total width of crops covers entire image width (excluding narrow)."""
+        img = np.full((200, 400, 3), 128, dtype=np.uint8)
+        lines = [(100, 0, 100, 199), (250, 0, 250, 199)]
+        crops = crop_spines(img, lines, min_width=1)
+        total_width = sum(c.shape[1] for c in crops)
+        assert total_width == 400
+
+    def test_none_image_raises(self):
+        """Error: ValueError when image is None."""
+        with pytest.raises(ValueError):
+            crop_spines(None, [])
+
+    def test_empty_image_raises(self):
+        """Error: ValueError when image is empty."""
+        with pytest.raises(ValueError):
+            crop_spines(np.array([]), [])
