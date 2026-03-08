@@ -5,7 +5,13 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from src.detect_text import DEFAULT_DET_CONFIDENCE, detect_text_regions, init_detector
+from src.detect_text import (
+    DEFAULT_DET_CONFIDENCE,
+    detect_text_on_spines,
+    detect_text_regions,
+    group_text_lines,
+    init_detector,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -269,3 +275,78 @@ class TestDetectTextRegionsEdgeCases:
 
         assert len(result) == 1
         assert result[0]["confidence"] == DEFAULT_DET_CONFIDENCE
+
+
+# ---------------------------------------------------------------------------
+# Tests — group_text_lines (Task 011)
+# ---------------------------------------------------------------------------
+
+class TestGroupTextLines:
+    """Tests for group_text_lines function."""
+
+    def test_groups_nearby_regions(self):
+        """Nominal: regions on the same vertical line are grouped together."""
+        # Two regions at similar y positions (vertical center ~35)
+        regions = [
+            {"bbox": [[10, 20], [100, 20], [100, 50], [10, 50]], "confidence": 0.9},
+            {"bbox": [[120, 22], [200, 22], [200, 48], [120, 48]], "confidence": 0.8},
+        ]
+        groups = group_text_lines(regions, line_threshold=0.5)
+
+        assert isinstance(groups, list)
+        assert len(groups) == 1  # Both in same group
+        assert len(groups[0]) == 2
+
+    def test_isolated_regions_own_group(self):
+        """Nominal: regions far apart vertically get their own group."""
+        regions = [
+            {"bbox": [[10, 10], [100, 10], [100, 30], [10, 30]], "confidence": 0.9},
+            {"bbox": [[10, 200], [100, 200], [100, 220], [10, 220]], "confidence": 0.8},
+        ]
+        groups = group_text_lines(regions, line_threshold=0.5)
+
+        assert len(groups) == 2
+        assert len(groups[0]) == 1
+        assert len(groups[1]) == 1
+
+    def test_empty_list(self):
+        """Edge: empty regions list returns empty groups list."""
+        groups = group_text_lines([])
+
+        assert groups == []
+
+
+# ---------------------------------------------------------------------------
+# Tests — detect_text_on_spines (Task 011)
+# ---------------------------------------------------------------------------
+
+class TestDetectTextOnSpines:
+    """Tests for detect_text_on_spines function."""
+
+    @patch("src.detect_text.detect_text_regions")
+    def test_returns_list_per_crop(self, mock_detect):
+        """Nominal: returns one result list per crop."""
+        mock_detect.return_value = [
+            {"bbox": [[10, 20], [100, 20], [100, 50], [10, 50]], "confidence": 0.9}
+        ]
+        crops = [_make_image(50, 30), _make_image(60, 25)]
+
+        result = detect_text_on_spines(crops, engine="paddleocr")
+
+        assert isinstance(result, list)
+        assert len(result) == 2
+        for item in result:
+            assert isinstance(item, list)
+
+    @patch("src.detect_text.detect_text_regions")
+    def test_empty_crops_list(self, mock_detect):
+        """Edge: empty crops list returns empty result list."""
+        result = detect_text_on_spines([], engine="paddleocr")
+
+        assert result == []
+        mock_detect.assert_not_called()
+
+    def test_none_raises_valueerror(self):
+        """Error: None crops raises ValueError."""
+        with pytest.raises(ValueError):
+            detect_text_on_spines(None)
