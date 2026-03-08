@@ -1,6 +1,6 @@
 # Tâche — Affiner la segmentation des tranches et produire des crops individuels
 
-Statut : TODO
+Statut : DONE
 Ordre : 010
 Workstream : WS1
 Milestone : M2
@@ -34,30 +34,30 @@ Améliorer `src/segment.py` pour filtrer les lignes parasites, gérer les cas sa
 - Mise à jour de la fonction `segment` existante pour intégrer le filtrage et le fallback.
 
 ## Critères d'acceptation
-- [ ] `filter_lines` supprime correctement les lignes trop courtes et trop inclinées
-- [ ] `filter_lines` conserve les lignes quasi-verticales de longueur suffisante
-- [ ] `split_wide_gaps` insère des lignes virtuelles quand le gap dépasse le seuil
-- [ ] `split_wide_gaps` ne modifie pas les gaps normaux
-- [ ] `crop_spines` retourne des crops de largeur >= `min_width`
-- [ ] `crop_spines` retourne au moins 1 crop (image entière si aucune ligne)
-- [ ] Les crops couvrent toute la largeur de l'image (pas de zone manquante)
-- [ ] `segment` intègre le filtrage et le fallback de manière transparente
-- [ ] Validation des entrées : `ValueError` sur image None ou vide
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords (aucune ligne, une seule ligne, gap très large)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `filter_lines` supprime correctement les lignes trop courtes et trop inclinées
+- [x] `filter_lines` conserve les lignes quasi-verticales de longueur suffisante
+- [x] `split_wide_gaps` insère des lignes virtuelles quand le gap dépasse le seuil
+- [x] `split_wide_gaps` ne modifie pas les gaps normaux
+- [x] `crop_spines` retourne des crops de largeur >= `min_width`
+- [x] `crop_spines` retourne au moins 1 crop (image entière si aucune ligne)
+- [x] Les crops couvrent toute la largeur de l'image (pas de zone manquante)
+- [x] `segment` intègre le filtrage et le fallback de manière transparente
+- [x] Validation des entrées : `ValueError` sur image None ou vide
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords (aucune ligne, une seule ligne, gap très large)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/010-refined-segmentation` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/010-refined-segmentation` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS1] #010 RED: tests segmentation affinée`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS1] #010 GREEN: segmentation affinée avec filtrage et crops`.
+- [x] Branche `task/010-refined-segmentation` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS1] #010 RED: tests segmentation affinée`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS1] #010 GREEN: segmentation affinée avec filtrage et crops`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS1] #010 — Segmentation affinée`.
