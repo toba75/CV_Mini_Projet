@@ -11,6 +11,8 @@ from src.detect_text import (
     detect_text_on_spines,
     detect_text_regions,
     estimate_text_angle,
+    filter_by_aspect_ratio,
+    filter_small_regions,
     group_text_lines,
     init_detector,
     rotate_image,
@@ -461,3 +463,254 @@ class TestCorrectOrientation:
         """Error: None image raises ValueError."""
         with pytest.raises(ValueError):
             correct_orientation(None, [])
+
+
+# ---------------------------------------------------------------------------
+# Tests — filter_small_regions (Task 021)
+# ---------------------------------------------------------------------------
+
+class TestFilterSmallRegions:
+    """Tests for filter_small_regions function."""
+
+    def test_keeps_large_regions(self):
+        """Nominal: regions with area >= min_area are kept."""
+        # 90 x 30 = 2700 area
+        regions = [
+            {"bbox": [[10, 20], [100, 20], [100, 50], [10, 50]], "confidence": 0.9},
+        ]
+        result = filter_small_regions(regions, min_area=100)
+
+        assert len(result) == 1
+
+    def test_removes_small_regions(self):
+        """Nominal: regions with area < min_area are removed."""
+        # 5 x 5 = 25 area
+        regions = [
+            {"bbox": [[10, 10], [15, 10], [15, 15], [10, 15]], "confidence": 0.9},
+        ]
+        result = filter_small_regions(regions, min_area=100)
+
+        assert len(result) == 0
+
+    def test_mixed_sizes(self):
+        """Nominal: only large regions survive filtering."""
+        regions = [
+            {"bbox": [[10, 20], [100, 20], [100, 50], [10, 50]], "confidence": 0.9},
+            {"bbox": [[10, 10], [15, 10], [15, 15], [10, 15]], "confidence": 0.8},
+        ]
+        result = filter_small_regions(regions, min_area=100)
+
+        assert len(result) == 1
+        assert result[0]["confidence"] == pytest.approx(0.9)
+
+    def test_empty_list(self):
+        """Edge: empty input returns empty output."""
+        result = filter_small_regions([], min_area=100)
+
+        assert result == []
+
+    def test_exact_threshold(self):
+        """Edge: region with area exactly equal to min_area is kept."""
+        # 10 x 10 = 100 area
+        regions = [
+            {"bbox": [[0, 0], [10, 0], [10, 10], [0, 10]], "confidence": 0.9},
+        ]
+        result = filter_small_regions(regions, min_area=100)
+
+        assert len(result) == 1
+
+    def test_non_rectangular_bbox(self):
+        """Nominal: area computed via Shoelace for non-rectangular polygons."""
+        # Parallelogram: vertices (0,0), (10,5), (10,15), (0,10)
+        # Shoelace area = 100
+        regions = [
+            {"bbox": [[0, 0], [10, 5], [10, 15], [0, 10]], "confidence": 0.9},
+        ]
+        result = filter_small_regions(regions, min_area=101)
+
+        assert len(result) == 0
+
+
+# ---------------------------------------------------------------------------
+# Tests — filter_by_aspect_ratio (Task 021)
+# ---------------------------------------------------------------------------
+
+class TestFilterByAspectRatio:
+    """Tests for filter_by_aspect_ratio function."""
+
+    def test_keeps_normal_ratio(self):
+        """Nominal: regions with normal aspect ratio are kept."""
+        # 90 wide x 30 tall → ratio = 3.0
+        regions = [
+            {"bbox": [[10, 20], [100, 20], [100, 50], [10, 50]], "confidence": 0.9},
+        ]
+        result = filter_by_aspect_ratio(regions, min_ratio=0.1, max_ratio=10.0)
+
+        assert len(result) == 1
+
+    def test_removes_too_wide(self):
+        """Nominal: region with extreme width-to-height ratio is removed."""
+        # 200 wide x 2 tall → ratio = 100.0
+        regions = [
+            {"bbox": [[0, 0], [200, 0], [200, 2], [0, 2]], "confidence": 0.9},
+        ]
+        result = filter_by_aspect_ratio(regions, min_ratio=0.1, max_ratio=10.0)
+
+        assert len(result) == 0
+
+    def test_removes_too_narrow(self):
+        """Nominal: region with extreme height-to-width ratio is removed."""
+        # 2 wide x 200 tall → ratio = 0.01
+        regions = [
+            {"bbox": [[0, 0], [2, 0], [2, 200], [0, 200]], "confidence": 0.9},
+        ]
+        result = filter_by_aspect_ratio(regions, min_ratio=0.1, max_ratio=10.0)
+
+        assert len(result) == 0
+
+    def test_empty_list(self):
+        """Edge: empty input returns empty output."""
+        result = filter_by_aspect_ratio([], min_ratio=0.1, max_ratio=10.0)
+
+        assert result == []
+
+    def test_square_region_kept(self):
+        """Edge: square region (ratio=1.0) is kept."""
+        regions = [
+            {"bbox": [[0, 0], [50, 0], [50, 50], [0, 50]], "confidence": 0.9},
+        ]
+        result = filter_by_aspect_ratio(regions, min_ratio=0.1, max_ratio=10.0)
+
+        assert len(result) == 1
+
+    def test_exact_min_ratio_kept(self):
+        """Edge: region with ratio exactly at min_ratio is kept."""
+        # 10 wide x 100 tall → ratio = 0.1
+        regions = [
+            {"bbox": [[0, 0], [10, 0], [10, 100], [0, 100]], "confidence": 0.9},
+        ]
+        result = filter_by_aspect_ratio(regions, min_ratio=0.1, max_ratio=10.0)
+
+        assert len(result) == 1
+
+    def test_exact_max_ratio_kept(self):
+        """Edge: region with ratio exactly at max_ratio is kept."""
+        # 100 wide x 10 tall → ratio = 10.0
+        regions = [
+            {"bbox": [[0, 0], [100, 0], [100, 10], [0, 10]], "confidence": 0.9},
+        ]
+        result = filter_by_aspect_ratio(regions, min_ratio=0.1, max_ratio=10.0)
+
+        assert len(result) == 1
+
+
+# ---------------------------------------------------------------------------
+# Tests — confidence_threshold in detect_text_regions (Task 021)
+# ---------------------------------------------------------------------------
+
+class TestDetectTextRegionsConfidenceThreshold:
+    """Tests for confidence_threshold parameter in detect_text_regions."""
+
+    def test_default_threshold_filters_low_confidence(self):
+        """Nominal: default threshold (0.5) filters out low-confidence detections."""
+        detector = MagicMock()
+        detector.ocr.return_value = [
+            [
+                [[[10, 20], [100, 20], [100, 50], [10, 50]], 0.95],
+                [[[150, 60], [250, 60], [250, 90], [150, 90]], 0.3],
+            ]
+        ]
+        img = _make_image()
+
+        result = detect_text_regions(img, detector=detector)
+
+        assert len(result) == 1
+        assert result[0]["confidence"] == pytest.approx(0.95)
+
+    def test_custom_threshold(self):
+        """Nominal: custom confidence_threshold filters accordingly."""
+        detector = MagicMock()
+        detector.ocr.return_value = [
+            [
+                [[[10, 20], [100, 20], [100, 50], [10, 50]], 0.95],
+                [[[150, 60], [250, 60], [250, 90], [150, 90]], 0.82],
+                [[[10, 100], [80, 100], [80, 130], [10, 130]], 0.60],
+            ]
+        ]
+        img = _make_image()
+
+        result = detect_text_regions(img, detector=detector, confidence_threshold=0.8)
+
+        assert len(result) == 2
+
+    def test_zero_threshold_keeps_all(self):
+        """Edge: confidence_threshold=0.0 keeps all detections."""
+        detector = MagicMock()
+        detector.ocr.return_value = [
+            [
+                [[[10, 20], [100, 20], [100, 50], [10, 50]], 0.01],
+                [[[150, 60], [250, 60], [250, 90], [150, 90]], 0.99],
+            ]
+        ]
+        img = _make_image()
+
+        result = detect_text_regions(img, detector=detector, confidence_threshold=0.0)
+
+        assert len(result) == 2
+
+    def test_high_threshold_filters_most(self):
+        """Edge: very high threshold filters most detections."""
+        detector = MagicMock()
+        detector.ocr.return_value = [
+            [
+                [[[10, 20], [100, 20], [100, 50], [10, 50]], 0.95],
+                [[[150, 60], [250, 60], [250, 90], [150, 90]], 0.82],
+            ]
+        ]
+        img = _make_image()
+
+        result = detect_text_regions(img, detector=detector, confidence_threshold=0.99)
+
+        assert len(result) == 0
+
+
+# ---------------------------------------------------------------------------
+# Tests — integrated filtering in detect_text_regions (Task 021)
+# ---------------------------------------------------------------------------
+
+class TestDetectTextRegionsIntegratedFiltering:
+    """Tests for integrated size and aspect ratio filtering in detect_text_regions."""
+
+    def test_small_regions_filtered_by_default(self):
+        """Nominal: very small detected regions are filtered out."""
+        detector = MagicMock()
+        detector.ocr.return_value = [
+            [
+                # Large region: 90x30 = 2700 area
+                [[[10, 20], [100, 20], [100, 50], [10, 50]], 0.95],
+                # Tiny region: 3x3 = 9 area
+                [[[10, 10], [13, 10], [13, 13], [10, 13]], 0.95],
+            ]
+        ]
+        img = _make_image()
+
+        result = detect_text_regions(img, detector=detector)
+
+        assert len(result) == 1
+
+    def test_aberrant_aspect_ratio_filtered(self):
+        """Nominal: regions with extreme aspect ratio are filtered out."""
+        detector = MagicMock()
+        detector.ocr.return_value = [
+            [
+                # Normal region: 90x30 → ratio 3.0
+                [[[10, 20], [100, 20], [100, 50], [10, 50]], 0.95],
+                # Extreme ratio: 200x1 → ratio 200.0
+                [[[0, 0], [200, 0], [200, 1], [0, 1]], 0.95],
+            ]
+        ]
+        img = _make_image()
+
+        result = detect_text_regions(img, detector=detector)
+
+        assert len(result) == 1
