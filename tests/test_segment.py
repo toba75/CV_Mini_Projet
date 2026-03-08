@@ -5,10 +5,14 @@ import numpy as np
 import pytest
 
 from src.segment import (
+    classify_spine,
     crop_spines,
+    detect_empty_regions,
     detect_vertical_lines,
     filter_lines,
+    merge_thin_spines,
     segment,
+    segment_robust,
     split_spines,
     split_wide_gaps,
 )
@@ -352,3 +356,271 @@ class TestCropSpines:
         """Error: ValueError when image is empty."""
         with pytest.raises(ValueError):
             crop_spines(np.array([]), [])
+
+
+# ---------------------------------------------------------------------------
+# Task 019 — Edge cases segmentation
+# ---------------------------------------------------------------------------
+
+
+class TestDetectEmptyRegions:
+    """Tests for detect_empty_regions function."""
+
+    def test_uniform_crops_detected_as_empty(self):
+        """Nominal: uniform (low variance) crops are flagged as empty."""
+        img = np.full((200, 400, 3), 128, dtype=np.uint8)
+        # Two uniform crops (no texture)
+        crop1 = np.full((200, 50, 3), 128, dtype=np.uint8)
+        crop2 = np.full((200, 50, 3), 200, dtype=np.uint8)
+        crops = [crop1, crop2]
+
+        result = detect_empty_regions(img, crops)
+
+        assert isinstance(result, list)
+        assert len(result) == 2
+        # Both uniform crops should be flagged as empty
+        assert all(r is True for r in result)
+
+    def test_textured_crops_not_empty(self):
+        """Nominal: crops with texture (high variance) are not flagged."""
+        rng = np.random.default_rng(42)
+        img = rng.integers(0, 256, (200, 400, 3), dtype=np.uint8)
+        crop1 = rng.integers(0, 256, (200, 50, 3), dtype=np.uint8)
+        crops = [crop1]
+
+        result = detect_empty_regions(img, crops)
+
+        assert result[0] is False
+
+    def test_mixed_crops(self):
+        """Nominal: mix of empty and textured crops."""
+        rng = np.random.default_rng(42)
+        img = np.full((200, 400, 3), 128, dtype=np.uint8)
+        uniform_crop = np.full((200, 50, 3), 128, dtype=np.uint8)
+        textured_crop = rng.integers(0, 256, (200, 50, 3), dtype=np.uint8)
+        crops = [uniform_crop, textured_crop]
+
+        result = detect_empty_regions(img, crops)
+
+        assert result[0] is True
+        assert result[1] is False
+
+    def test_none_image_raises(self):
+        """Error: ValueError when image is None."""
+        with pytest.raises(ValueError):
+            detect_empty_regions(None, [])
+
+    def test_empty_crops_list(self):
+        """Edge: empty crops list returns empty result."""
+        img = np.full((200, 400, 3), 128, dtype=np.uint8)
+        result = detect_empty_regions(img, [])
+        assert result == []
+
+    def test_custom_variance_threshold(self):
+        """Nominal: variance_threshold parameter controls sensitivity."""
+        # Crop with slight noise — low variance
+        rng = np.random.default_rng(42)
+        base = np.full((200, 50, 3), 128, dtype=np.uint8)
+        noise = rng.integers(-5, 6, base.shape, dtype=np.int16)
+        crop = np.clip(base.astype(np.int16) + noise, 0, 255).astype(np.uint8)
+        img = np.full((200, 400, 3), 128, dtype=np.uint8)
+
+        # With high threshold, it should be empty
+        result_high = detect_empty_regions(img, [crop], variance_threshold=100.0)
+        assert result_high[0] is True
+
+        # With very low threshold, it should not be empty
+        result_low = detect_empty_regions(img, [crop], variance_threshold=0.1)
+        assert result_low[0] is False
+
+
+class TestClassifySpine:
+    """Tests for classify_spine function."""
+
+    def test_returns_dict_with_required_keys(self):
+        """Nominal: returns dict with 'is_book' and 'reason' keys."""
+        rng = np.random.default_rng(42)
+        crop = rng.integers(0, 256, (300, 50, 3), dtype=np.uint8)
+
+        result = classify_spine(crop)
+
+        assert isinstance(result, dict)
+        assert "is_book" in result
+        assert "reason" in result
+        assert isinstance(result["is_book"], bool)
+        assert isinstance(result["reason"], str)
+
+    def test_tall_textured_crop_is_book(self):
+        """Nominal: tall crop with texture is classified as book."""
+        rng = np.random.default_rng(42)
+        # Aspect ratio h/w = 300/40 = 7.5 — tall, book-like
+        crop = rng.integers(0, 256, (300, 40, 3), dtype=np.uint8)
+
+        result = classify_spine(crop)
+
+        assert result["is_book"] is True
+
+    def test_uniform_crop_is_not_book(self):
+        """Nominal: uniform crop (no texture) is not a book."""
+        crop = np.full((300, 40, 3), 128, dtype=np.uint8)
+
+        result = classify_spine(crop)
+
+        assert result["is_book"] is False
+
+    def test_square_crop_is_not_book(self):
+        """Nominal: square crop (low aspect ratio) is not a book spine."""
+        rng = np.random.default_rng(42)
+        crop = rng.integers(0, 256, (100, 100, 3), dtype=np.uint8)
+
+        result = classify_spine(crop)
+
+        assert result["is_book"] is False
+
+    def test_wide_crop_is_not_book(self):
+        """Nominal: wider-than-tall crop is not a book spine."""
+        rng = np.random.default_rng(42)
+        crop = rng.integers(0, 256, (50, 200, 3), dtype=np.uint8)
+
+        result = classify_spine(crop)
+
+        assert result["is_book"] is False
+
+    def test_none_image_raises(self):
+        """Error: ValueError when crop is None."""
+        with pytest.raises(ValueError):
+            classify_spine(None)
+
+    def test_2d_image_raises(self):
+        """Error: ValueError when crop is 2D."""
+        crop = np.full((200, 50), 128, dtype=np.uint8)
+        with pytest.raises(ValueError, match="3-dimensional"):
+            classify_spine(crop)
+
+
+class TestMergeThinSpines:
+    """Tests for merge_thin_spines function."""
+
+    def test_merges_adjacent_thin_crops(self):
+        """Nominal: adjacent thin crops are merged into one."""
+        # Image width = 500, min_width_ratio = 0.02 → min_width = 10
+        thin1 = np.full((200, 5, 3), 100, dtype=np.uint8)
+        thin2 = np.full((200, 5, 3), 120, dtype=np.uint8)
+        wide = np.full((200, 100, 3), 150, dtype=np.uint8)
+        crops = [thin1, thin2, wide]
+
+        result = merge_thin_spines(crops, min_width_ratio=0.02)
+
+        # thin1 + thin2 should be merged, wide stays
+        assert len(result) < len(crops)
+        # The merged crop should have width = 10
+        assert result[0].shape[1] == 10
+        assert result[-1].shape[1] == 100
+
+    def test_no_thin_crops_unchanged(self):
+        """Nominal: no thin crops means no merging."""
+        crop1 = np.full((200, 100, 3), 100, dtype=np.uint8)
+        crop2 = np.full((200, 80, 3), 150, dtype=np.uint8)
+        crops = [crop1, crop2]
+
+        result = merge_thin_spines(crops, min_width_ratio=0.02)
+
+        assert len(result) == 2
+
+    def test_all_thin_crops_merged_into_one(self):
+        """Edge: all crops are thin — they merge into a single crop."""
+        thin1 = np.full((200, 3, 3), 100, dtype=np.uint8)
+        thin2 = np.full((200, 4, 3), 120, dtype=np.uint8)
+        thin3 = np.full((200, 3, 3), 140, dtype=np.uint8)
+        crops = [thin1, thin2, thin3]
+
+        result = merge_thin_spines(crops, min_width_ratio=0.02)
+
+        assert len(result) == 1
+        assert result[0].shape[1] == 10
+
+    def test_empty_crops_returns_empty(self):
+        """Edge: empty input returns empty output."""
+        result = merge_thin_spines([], min_width_ratio=0.02)
+        assert result == []
+
+    def test_single_thin_crop_stays(self):
+        """Edge: single thin crop is returned as-is (nothing to merge with)."""
+        thin = np.full((200, 3, 3), 100, dtype=np.uint8)
+
+        result = merge_thin_spines([thin], min_width_ratio=0.02)
+
+        assert len(result) == 1
+
+    def test_preserves_height(self):
+        """Nominal: merged crop preserves the height of input crops."""
+        thin1 = np.full((200, 5, 3), 100, dtype=np.uint8)
+        thin2 = np.full((200, 5, 3), 120, dtype=np.uint8)
+        crops = [thin1, thin2]
+
+        result = merge_thin_spines(crops, min_width_ratio=0.02)
+
+        assert result[0].shape[0] == 200
+
+
+class TestSegmentRobust:
+    """Tests for segment_robust orchestrator."""
+
+    def test_returns_list_of_dicts(self):
+        """Nominal: returns list of dicts with 'crop' and 'is_book' keys."""
+        rng = np.random.default_rng(42)
+        img = rng.integers(0, 256, (300, 400, 3), dtype=np.uint8)
+
+        results = segment_robust(img)
+
+        assert isinstance(results, list)
+        assert len(results) >= 1
+        for item in results:
+            assert isinstance(item, dict)
+            assert "crop" in item
+            assert "is_book" in item
+            assert isinstance(item["crop"], np.ndarray)
+            assert isinstance(item["is_book"], bool)
+
+    def test_none_image_raises(self):
+        """Error: ValueError when image is None."""
+        with pytest.raises(ValueError):
+            segment_robust(None)
+
+    def test_empty_image_raises(self):
+        """Error: ValueError when image is empty."""
+        with pytest.raises(ValueError):
+            segment_robust(np.array([]))
+
+    def test_2d_image_raises(self):
+        """Error: ValueError when image is 2D."""
+        img = np.full((200, 300), 128, dtype=np.uint8)
+        with pytest.raises(ValueError, match="3-dimensional"):
+            segment_robust(img)
+
+    def test_uniform_image_single_result(self):
+        """Edge: uniform image returns at least one result."""
+        img = np.full((200, 300, 3), 128, dtype=np.uint8)
+
+        results = segment_robust(img)
+
+        assert len(results) >= 1
+
+    def test_does_not_modify_input(self):
+        """Nominal: input image is not modified in place. §R4"""
+        rng = np.random.default_rng(42)
+        img = rng.integers(0, 256, (200, 300, 3), dtype=np.uint8)
+        original = img.copy()
+
+        segment_robust(img)
+
+        np.testing.assert_array_equal(img, original)
+
+    def test_regression_segment_still_works(self):
+        """Regression: original segment() function still works."""
+        img = np.full((300, 400, 3), 255, dtype=np.uint8)
+        cv2.line(img, (200, 0), (200, 299), (0, 0, 0), 2)
+
+        crops = segment(img)
+
+        assert len(crops) == 2
