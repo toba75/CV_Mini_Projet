@@ -1,6 +1,6 @@
 # Tâche — Implémenter le post-traitement du texte OCR
 
-Statut : TODO
+Statut : DONE
 Ordre : 014
 Workstream : WS3
 Milestone : M2
@@ -33,17 +33,17 @@ Dépendances :
 - Fonction `postprocess_spine(raw_texts: list[str]) -> dict` : orchestre merge_fragments → clean_text → split_title_author. Retourne `{"raw_text": str, "clean_text": str, "title": str, "author": str | None}`.
 
 ## Critères d'acceptation
-- [ ] `clean_text` supprime les caractères parasites courants (ex : `\x00`, `|`, caractères de contrôle)
-- [ ] `clean_text` normalise les espaces multiples en un seul espace
-- [ ] `clean_text` applique la normalisation unicode NFC
-- [ ] `merge_fragments` fusionne correctement les fragments avec gestion des coupures de mots
-- [ ] `merge_fragments` retourne une chaîne vide pour une liste vide
-- [ ] `split_title_author` sépare correctement les cas courants (ex : "LE PETIT PRINCE\nAntoine de Saint-Exupéry")
-- [ ] `split_title_author` retourne `author: None` si un seul élément est détecté
-- [ ] `postprocess_spine` orchestre correctement le pipeline de post-traitement
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords (texte vide, texte sans auteur, caractères spéciaux)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `clean_text` supprime les caractères parasites courants (ex : `\x00`, `|`, caractères de contrôle)
+- [x] `clean_text` normalise les espaces multiples en un seul espace
+- [x] `clean_text` applique la normalisation unicode NFC
+- [x] `merge_fragments` fusionne correctement les fragments avec gestion des coupures de mots
+- [x] `merge_fragments` retourne une chaîne vide pour une liste vide
+- [x] `split_title_author` sépare correctement les cas courants (ex : "LE PETIT PRINCE\nAntoine de Saint-Exupéry")
+- [x] `split_title_author` retourne `author: None` si un seul élément est détecté
+- [x] `postprocess_spine` orchestre correctement le pipeline de post-traitement
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords (texte vide, texte sans auteur, caractères spéciaux)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.

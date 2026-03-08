@@ -5,6 +5,8 @@ for book metadata enrichment of OCR results.
 """
 
 import logging
+import re
+import unicodedata
 
 import requests
 
@@ -34,6 +36,104 @@ def _validate_provider(provider: str) -> None:
             f"Unknown provider '{provider}'. "
             f"Supported providers: {SUPPORTED_PROVIDERS}"
         )
+
+
+def clean_text(raw_text: str) -> str:
+    """Clean raw OCR text.
+
+    Removes control characters, normalizes multiple spaces to a single
+    space, applies Unicode NFC normalization, and strips leading/trailing
+    whitespace.
+
+    Args:
+        raw_text: Raw text string from OCR.
+
+    Returns:
+        Cleaned text string.
+    """
+    if not raw_text:
+        return ""
+    # Remove control characters (category Cc) except common whitespace
+    cleaned = "".join(
+        ch if unicodedata.category(ch) != "Cc" or ch in ("\n", "\t") else ""
+        for ch in raw_text
+    )
+    # Normalize multiple spaces to single space
+    cleaned = re.sub(r" {2,}", " ", cleaned)
+    # Apply NFC normalization
+    cleaned = unicodedata.normalize("NFC", cleaned)
+    # Strip leading/trailing whitespace
+    return cleaned.strip()
+
+
+def merge_fragments(fragments: list[str]) -> str:
+    """Merge text fragments from the same spine into a single string.
+
+    Handles word breaks at end of lines (hyphen followed by next fragment).
+
+    Args:
+        fragments: List of text strings from OCR on the same spine.
+
+    Returns:
+        Merged text string, or empty string for empty list.
+    """
+    if not fragments:
+        return ""
+    result = fragments[0]
+    for frag in fragments[1:]:
+        if result.endswith("-"):
+            # Join hyphenated word break
+            result = result[:-1] + frag
+        else:
+            result = result + " " + frag
+    return result
+
+
+def split_title_author(text: str) -> dict[str, str | None]:
+    """Split a spine text into title and author using heuristics.
+
+    Heuristics:
+    - If text contains a newline, the first part is the title and the
+      second part is the author.
+    - If single line, title is the full text and author is None.
+
+    Args:
+        text: Cleaned spine text.
+
+    Returns:
+        Dict with keys ``"title"`` (str) and ``"author"`` (str | None).
+    """
+    if not text:
+        return {"title": "", "author": None}
+    if "\n" in text:
+        parts = text.split("\n", 1)
+        title = parts[0].strip()
+        author = parts[1].strip() if len(parts) > 1 and parts[1].strip() else None
+        return {"title": title, "author": author}
+    return {"title": text, "author": None}
+
+
+def postprocess_spine(raw_texts: list[str]) -> dict[str, str | None]:
+    """Orchestrate the full post-processing pipeline for a spine.
+
+    Pipeline: merge_fragments -> clean_text -> split_title_author.
+
+    Args:
+        raw_texts: List of raw OCR text fragments from one spine.
+
+    Returns:
+        Dict with keys ``"raw_text"``, ``"clean_text"``, ``"title"``,
+        ``"author"``.
+    """
+    raw_text = merge_fragments(raw_texts)
+    cleaned = clean_text(raw_text)
+    split = split_title_author(cleaned)
+    return {
+        "raw_text": raw_text,
+        "clean_text": cleaned,
+        "title": split["title"],
+        "author": split["author"],
+    }
 
 
 def _parse_openlibrary_docs(docs: list[dict]) -> list[dict]:
