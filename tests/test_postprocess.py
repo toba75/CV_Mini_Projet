@@ -6,7 +6,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from src.postprocess import get_book_metadata, search_book
+from src.postprocess import (
+    clean_text,
+    get_book_metadata,
+    merge_fragments,
+    postprocess_spine,
+    search_book,
+    split_title_author,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -372,3 +379,122 @@ class TestNoHardcodedAPIKeys:
         assert "AIza" not in source, "Google API key pattern found in source"
         assert "api_key=" not in source.lower().replace(" ", ""), "api_key assignment found"
         assert "apikey=" not in source.lower().replace(" ", ""), "apikey assignment found"
+
+
+# ---------------------------------------------------------------------------
+# clean_text
+# ---------------------------------------------------------------------------
+
+
+class TestCleanText:
+    """Tests for clean_text — nettoyage du texte brut OCR."""
+
+    def test_removes_control_characters(self) -> None:
+        result = clean_text("hello\x00world\x01!")
+        assert "\x00" not in result
+        assert "\x01" not in result
+        assert "helloworld!" in result
+
+    def test_normalizes_multiple_spaces(self) -> None:
+        result = clean_text("hello   world")
+        assert result == "hello world"
+
+    def test_applies_nfc_normalization(self) -> None:
+        import unicodedata
+
+        # e + combining accent (NFD) should become single char (NFC)
+        nfd_text = unicodedata.normalize("NFD", "\u00e9")  # e + combining accent
+        result = clean_text(nfd_text)
+        assert result == unicodedata.normalize("NFC", nfd_text)
+
+    def test_empty_string_returns_empty(self) -> None:
+        result = clean_text("")
+        assert result == ""
+
+    def test_strips_whitespace(self) -> None:
+        result = clean_text("  hello  ")
+        assert result == "hello"
+
+
+# ---------------------------------------------------------------------------
+# merge_fragments
+# ---------------------------------------------------------------------------
+
+
+class TestMergeFragments:
+    """Tests for merge_fragments — fusion de fragments de texte."""
+
+    def test_joins_fragments_with_spaces(self) -> None:
+        result = merge_fragments(["hello", "world"])
+        assert result == "hello world"
+
+    def test_handles_hyphen_word_break(self) -> None:
+        result = merge_fragments(["pro-", "gramming"])
+        assert result == "programming"
+
+    def test_empty_list_returns_empty(self) -> None:
+        result = merge_fragments([])
+        assert result == ""
+
+    def test_single_fragment(self) -> None:
+        result = merge_fragments(["hello"])
+        assert result == "hello"
+
+
+# ---------------------------------------------------------------------------
+# split_title_author
+# ---------------------------------------------------------------------------
+
+
+class TestSplitTitleAuthor:
+    """Tests for split_title_author — separation titre/auteur."""
+
+    def test_multiline_split(self) -> None:
+        result = split_title_author("LE PETIT PRINCE\nAntoine de Saint-Exupéry")
+        assert isinstance(result, dict)
+        assert result["title"] == "LE PETIT PRINCE"
+        assert result["author"] == "Antoine de Saint-Exupéry"
+
+    def test_single_line_returns_author_none(self) -> None:
+        result = split_title_author("LE PETIT PRINCE")
+        assert result["title"] == "LE PETIT PRINCE"
+        assert result["author"] is None
+
+    def test_empty_string(self) -> None:
+        result = split_title_author("")
+        assert result["title"] == ""
+        assert result["author"] is None
+
+    def test_returns_dict_with_expected_keys(self) -> None:
+        result = split_title_author("Title")
+        assert "title" in result
+        assert "author" in result
+
+
+# ---------------------------------------------------------------------------
+# postprocess_spine
+# ---------------------------------------------------------------------------
+
+
+class TestPostprocessSpine:
+    """Tests for postprocess_spine — pipeline orchestration."""
+
+    def test_full_pipeline(self) -> None:
+        result = postprocess_spine(["LE PETIT", "PRINCE\nSaint-Exupéry"])
+        assert isinstance(result, dict)
+        assert "raw_text" in result
+        assert "clean_text" in result
+        assert "title" in result
+        assert "author" in result
+
+    def test_empty_fragments(self) -> None:
+        result = postprocess_spine([])
+        assert result["raw_text"] == ""
+        assert result["clean_text"] == ""
+        assert result["title"] == ""
+        assert result["author"] is None
+
+    def test_single_fragment_no_author(self) -> None:
+        result = postprocess_spine(["LE PETIT PRINCE"])
+        assert result["title"] == "LE PETIT PRINCE"
+        assert result["author"] is None
