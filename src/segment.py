@@ -19,6 +19,20 @@ MIN_GAP_PX: int = 5
 MIN_GAP_RATIO: float = 0.02
 
 
+def _validate_image(image: np.ndarray | None) -> None:
+    """Raise ``ValueError`` if *image* is None, empty, or malformed."""
+    if image is None:
+        raise ValueError("Input image must not be None.")
+    if not isinstance(image, np.ndarray) or image.size == 0:
+        raise ValueError("Input image must be a non-empty numpy array.")
+    if image.ndim != 3:
+        raise ValueError(
+            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
+        )
+    if image.dtype != np.uint8:
+        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+
+
 def detect_vertical_lines(
     image: np.ndarray,
     canny_low: int = 50,
@@ -48,16 +62,7 @@ def detect_vertical_lines(
     Raises:
         ValueError: If *image* is None, empty, not 3D, or not uint8.
     """
-    if image is None:
-        raise ValueError("Input image must not be None.")
-    if not isinstance(image, np.ndarray) or image.size == 0:
-        raise ValueError("Input image must be a non-empty numpy array.")
-    if image.ndim != 3:
-        raise ValueError(
-            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
-        )
-    if image.dtype != np.uint8:
-        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+    _validate_image(image)
 
     # Convert to grayscale for edge detection
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -109,16 +114,7 @@ def split_spines(
     Raises:
         ValueError: If *image* is None, empty, not 3D, or not uint8.
     """
-    if image is None:
-        raise ValueError("Input image must not be None.")
-    if not isinstance(image, np.ndarray) or image.size == 0:
-        raise ValueError("Input image must be a non-empty numpy array.")
-    if image.ndim != 3:
-        raise ValueError(
-            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
-        )
-    if image.dtype != np.uint8:
-        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+    _validate_image(image)
 
     if not lines:
         return [image.copy()]
@@ -166,16 +162,7 @@ def segment(image: np.ndarray) -> list[np.ndarray]:
     Raises:
         ValueError: If *image* is None, empty, not 3D, or not uint8.
     """
-    if image is None:
-        raise ValueError("Input image must not be None.")
-    if not isinstance(image, np.ndarray) or image.size == 0:
-        raise ValueError("Input image must be a non-empty numpy array.")
-    if image.ndim != 3:
-        raise ValueError(
-            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
-        )
-    if image.dtype != np.uint8:
-        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+    _validate_image(image)
 
     lines = detect_vertical_lines(image)
     crops = split_spines(image, lines)

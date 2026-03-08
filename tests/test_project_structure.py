@@ -37,6 +37,8 @@ class TestSourceFiles:
         "ocr.py",
         "postprocess.py",
         "pipeline.py",
+        "app.py",
+        "eval_utils.py",
     ]
 
     @pytest.mark.parametrize("filename", EXPECTED_MODULES)
@@ -65,6 +67,8 @@ class TestModuleImportability:
             "ocr",
             "postprocess",
             "pipeline",
+            "app",
+            "eval_utils",
         ],
     )
     def test_module_importable(self, module_name: str) -> None:
@@ -75,7 +79,9 @@ class TestModuleImportability:
 
     def test_from_src_import_all_modules(self) -> None:
         from src import (  # noqa: F401
+            app,
             detect_text,
+            eval_utils,
             ocr,
             pipeline,
             postprocess,
@@ -104,6 +110,8 @@ class TestEdgeCases:
         "ocr.py",
         "postprocess.py",
         "pipeline.py",
+        "app.py",
+        "eval_utils.py",
         "__init__.py",
     ]
 

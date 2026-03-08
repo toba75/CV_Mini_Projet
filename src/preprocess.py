@@ -59,12 +59,19 @@ def resize_image(image: np.ndarray, max_width: int = 1920) -> np.ndarray:
         The (possibly resized) image.
 
     Raises:
-        ValueError: If *image* is None or empty.
+        ValueError: If *image* is None, empty, not 3-dimensional, or
+            not uint8.
     """
     if image is None:
         raise ValueError("Input image must not be None.")
     if not isinstance(image, np.ndarray) or image.size == 0:
         raise ValueError("Input image must be a non-empty numpy array.")
+    if image.ndim != 3:
+        raise ValueError(
+            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
+        )
+    if image.dtype != np.uint8:
+        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
 
     height, width = image.shape[:2]
 
@@ -98,12 +105,19 @@ def apply_clahe(
         The contrast-enhanced BGR image.
 
     Raises:
-        ValueError: If *image* is None or empty.
+        ValueError: If *image* is None, empty, not 3-dimensional, or
+            not uint8.
     """
     if image is None:
         raise ValueError("Input image must not be None.")
     if not isinstance(image, np.ndarray) or image.size == 0:
         raise ValueError("Input image must be a non-empty numpy array.")
+    if image.ndim != 3:
+        raise ValueError(
+            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
+        )
+    if image.dtype != np.uint8:
+        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
 
     # Work on a copy — never modify the input in place (§R4)
     img = image.copy()

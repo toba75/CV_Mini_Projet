@@ -79,6 +79,18 @@ class TestResizeImage:
         with pytest.raises(ValueError):
             resize_image(np.array([]))
 
+    def test_resize_image_wrong_ndim_raises(self):
+        """Error: ValueError when image has wrong number of dimensions."""
+        img_2d = np.zeros((100, 150), dtype=np.uint8)
+        with pytest.raises(ValueError, match="3 dimensions"):
+            resize_image(img_2d)
+
+    def test_resize_image_wrong_dtype_raises(self):
+        """Error: ValueError when image dtype is not uint8."""
+        img_float = np.zeros((100, 150, 3), dtype=np.float32)
+        with pytest.raises(ValueError, match="uint8"):
+            resize_image(img_float)
+
 
 class TestApplyClahe:
     """Tests for apply_clahe function."""
@@ -125,6 +137,18 @@ class TestApplyClahe:
         """Error: ValueError when image is empty."""
         with pytest.raises(ValueError):
             apply_clahe(np.array([]))
+
+    def test_clahe_wrong_ndim_raises(self):
+        """Error: ValueError when image has wrong number of dimensions."""
+        img_2d = np.zeros((100, 150), dtype=np.uint8)
+        with pytest.raises(ValueError, match="3 dimensions"):
+            apply_clahe(img_2d)
+
+    def test_clahe_wrong_dtype_raises(self):
+        """Error: ValueError when image dtype is not uint8."""
+        img_float = np.zeros((100, 150, 3), dtype=np.float32)
+        with pytest.raises(ValueError, match="uint8"):
+            apply_clahe(img_float)
 
 
 class TestPreprocess:
