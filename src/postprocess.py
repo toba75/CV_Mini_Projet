@@ -9,6 +9,7 @@ import re
 import unicodedata
 
 import requests
+from rapidfuzz import fuzz
 
 logger = logging.getLogger(__name__)
 
@@ -292,3 +293,103 @@ def get_book_metadata(
         raise ConnectionError(str(exc)) from exc
     except requests.exceptions.Timeout as exc:
         raise TimeoutError(str(exc)) from exc
+
+
+def fuzzy_match_title(
+    ocr_text: str,
+    candidates: list[dict],
+    threshold: float = 60.0,
+) -> dict | None:
+    """Find the best fuzzy match for OCR text among API candidates.
+
+    Args:
+        ocr_text: Text extracted by OCR.
+        candidates: List of book dicts with at least a ``"title"`` key.
+        threshold: Minimum ``rapidfuzz.fuzz.ratio`` score to accept.
+
+    Returns:
+        Best matching candidate dict with an added ``"match_score"`` key,
+        or ``None`` if no candidate meets the threshold.
+    """
+    if not ocr_text or not candidates:
+        return None
+
+    best_score = 0.0
+    best_candidate = None
+
+    for candidate in candidates:
+        score = fuzz.ratio(ocr_text, candidate["title"])
+        if score > best_score:
+            best_score = score
+            best_candidate = candidate
+
+    if best_score < threshold or best_candidate is None:
+        return None
+
+    result = {**best_candidate, "match_score": best_score}
+    return result
+
+
+def identify_book(
+    ocr_text: str,
+    provider: str = "openlibrary",
+    threshold: float = 60.0,
+) -> dict | None:
+    """Identify a book from OCR text using API search and fuzzy matching.
+
+    Orchestrates :func:`search_book` and :func:`fuzzy_match_title`.
+
+    Args:
+        ocr_text: Text extracted by OCR from a spine.
+        provider: Bibliographic API provider.
+        threshold: Minimum fuzzy match score.
+
+    Returns:
+        Dict with keys ``title``, ``author``, ``isbn``, ``confidence``,
+        ``provider``, or ``None`` if no match found.
+    """
+    if not ocr_text:
+        return None
+
+    candidates = search_book(ocr_text, provider=provider)
+    match = fuzzy_match_title(ocr_text, candidates, threshold=threshold)
+
+    if match is None:
+        return None
+
+    return {
+        "title": match["title"],
+        "author": match.get("author"),
+        "isbn": match.get("isbn"),
+        "confidence": match["match_score"] / 100.0,
+        "provider": match.get("provider", provider),
+    }
+
+
+def identify_books(
+    spine_results: list[dict],
+    provider: str = "openlibrary",
+    threshold: float = 60.0,
+) -> list[dict]:
+    """Identify books for a list of spine post-processing results.
+
+    Calls :func:`identify_book` for each spine result's ``"title"``
+    field and merges identification data back into the spine dict.
+
+    Args:
+        spine_results: List of dicts from :func:`postprocess_spine`.
+        provider: Bibliographic API provider.
+        threshold: Minimum fuzzy match score.
+
+    Returns:
+        Enriched list of spine result dicts.
+    """
+    enriched: list[dict] = []
+    for spine in spine_results:
+        result = {**spine}
+        title = spine.get("title", "")
+        identification = identify_book(title, provider=provider, threshold=threshold)
+        if identification is not None:
+            result.update(identification)
+        enriched.append(result)
+    return enriched
