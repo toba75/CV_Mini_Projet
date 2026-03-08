@@ -14,7 +14,11 @@
       "Bash(git push*)",
       "Bash(gh pr*)",
       "Bash(gh api*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git diff*)",
+      "Bash(git branch*)",
+      "Bash(git status*)",
+      "Bash(mkdir*)"
     ],
     "additionalDirectories": [
       "C:\\Users\\maxim\\python\\Computer_Vision\\CV_Mini_Projet\\data",
