@@ -60,5 +60,5 @@ Organiser les 15 photos existantes dans `data/raw/`, puis produire un fichier CS
 - [x] Critères d'acceptation tous satisfaits.
 - [x] `ruff check src/ tests/` passe sans erreur.
 - [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS5] #008 GREEN: dataset initial et ground truth`.
+- [x] **Commit GREEN** : `[WS5] #008 GREEN: dataset initial et ground truth`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS5] #008 — Dataset initial et ground truth`.
