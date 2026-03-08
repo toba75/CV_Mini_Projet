@@ -1,6 +1,6 @@
 # Tâche — Scaffolder l'application Streamlit minimale
 
-Statut : TODO
+Statut : DONE
 Ordre : 007
 Workstream : WS4
 Milestone : M1
@@ -33,27 +33,27 @@ Créer une application Streamlit minimale permettant d'uploader une image d'éta
 - Structure modulaire prête pour l'intégration du pipeline en M2.
 
 ## Critères d'acceptation
-- [ ] `src/app.py` existe et contient une application Streamlit fonctionnelle
-- [ ] L'application démarre sans erreur avec `streamlit run src/app.py`
-- [ ] L'upload d'image (JPEG, PNG) fonctionne
-- [ ] L'image uploadée s'affiche correctement
-- [ ] L'interface contient un titre et des labels en français
-- [ ] Le code Streamlit ne contient pas de logique de traitement d'image
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `src/app.py` existe et contient une application Streamlit fonctionnelle
+- [x] L'application démarre sans erreur avec `streamlit run src/app.py`
+- [x] L'upload d'image (JPEG, PNG) fonctionne
+- [x] L'image uploadée s'affiche correctement
+- [x] L'interface contient un titre et des labels en français
+- [x] Le code Streamlit ne contient pas de logique de traitement d'image
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/007-streamlit-scaffold` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/007-streamlit-scaffold` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS4] #007 RED: tests scaffold Streamlit`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS4] #007 GREEN: scaffold Streamlit minimal`.
+- [x] Branche `task/007-streamlit-scaffold` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS4] #007 RED: tests scaffold Streamlit`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS4] #007 GREEN: scaffold Streamlit minimal`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS4] #007 — Scaffold Streamlit`.
