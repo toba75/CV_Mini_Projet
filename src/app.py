@@ -24,8 +24,7 @@ def main():
         st.image(uploaded_file, caption="Image uploadée", use_container_width=True)
 
         st.subheader("Résultats")
-        results_container = st.container()
-        with results_container:
+        with st.container():
             st.info("Le pipeline d'analyse sera intégré dans les prochains milestones.")
 
 

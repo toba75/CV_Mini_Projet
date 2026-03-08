@@ -5,6 +5,8 @@ import math
 import cv2
 import numpy as np
 
+from src import validate_image
+
 # PaddleOCR in det-only mode (rec=False) does not return a confidence score
 # for detected text regions. We use 1.0 as the default confidence in that case.
 DEFAULT_DET_CONFIDENCE: float = 1.0
@@ -52,16 +54,7 @@ def detect_text_regions(
     Raises:
         ValueError: If image is None, not a numpy array, or empty.
     """
-    if image is None:
-        raise ValueError("Image cannot be None.")
-    if not isinstance(image, np.ndarray):
-        raise ValueError("Image must be a numpy array.")
-    if image.size == 0:
-        raise ValueError("Image cannot be empty.")
-    if image.ndim != 3:
-        raise ValueError("Image must be 3-dimensional (H, W, C).")
-    if image.dtype != np.uint8:
-        raise ValueError("Image must be uint8.")
+    validate_image(image)
 
     image = image.copy()
 
@@ -195,22 +188,8 @@ def estimate_text_angle(bboxes: list[dict]) -> float:
     return (angles[n // 2 - 1] + angles[n // 2]) / 2.0
 
 
-def _validate_image(image: np.ndarray) -> None:
-    """Validate that *image* is a proper BGR numpy array.
-
-    Raises:
-        ValueError: If image is None, not an ndarray, empty, not 3-D, or not uint8.
-    """
-    if image is None:
-        raise ValueError("Image cannot be None.")
-    if not isinstance(image, np.ndarray):
-        raise ValueError("Image must be a numpy array.")
-    if image.size == 0:
-        raise ValueError("Image cannot be empty.")
-    if image.ndim != 3:
-        raise ValueError("Image must be 3-dimensional (H, W, C).")
-    if image.dtype != np.uint8:
-        raise ValueError("Image must be uint8.")
+# Keep module-level alias so that internal callers continue to work.
+_validate_image = validate_image
 
 
 def rotate_image(image: np.ndarray, angle: float) -> np.ndarray:

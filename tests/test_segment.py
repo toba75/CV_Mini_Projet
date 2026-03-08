@@ -84,7 +84,7 @@ class TestDetectVerticalLines:
     def test_2d_image_raises(self):
         """Error: ValueError when image is 2D (ndim != 3)."""
         img = np.full((200, 300), 128, dtype=np.uint8)
-        with pytest.raises(ValueError, match="3 dimensions"):
+        with pytest.raises(ValueError, match="3-dimensional"):
             detect_vertical_lines(img)
 
     def test_wrong_dtype_raises(self):
@@ -166,7 +166,7 @@ class TestSplitSpines:
     def test_2d_image_raises(self):
         """Error: ValueError when image is 2D (ndim != 3)."""
         img = np.full((200, 300), 128, dtype=np.uint8)
-        with pytest.raises(ValueError, match="3 dimensions"):
+        with pytest.raises(ValueError, match="3-dimensional"):
             split_spines(img, [])
 
     def test_wrong_dtype_raises(self):
@@ -218,7 +218,7 @@ class TestSegment:
     def test_2d_image_raises(self):
         """Error: ValueError when image is 2D (ndim != 3)."""
         img = np.full((200, 300), 128, dtype=np.uint8)
-        with pytest.raises(ValueError, match="3 dimensions"):
+        with pytest.raises(ValueError, match="3-dimensional"):
             segment(img)
 
     def test_wrong_dtype_raises(self):

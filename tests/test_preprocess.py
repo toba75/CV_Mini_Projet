@@ -89,7 +89,7 @@ class TestResizeImage:
     def test_resize_image_wrong_ndim_raises(self):
         """Error: ValueError when image has wrong number of dimensions."""
         img_2d = np.zeros((100, 150), dtype=np.uint8)
-        with pytest.raises(ValueError, match="3 dimensions"):
+        with pytest.raises(ValueError, match="3-dimensional"):
             resize_image(img_2d)
 
     def test_resize_image_wrong_dtype_raises(self):
@@ -148,7 +148,7 @@ class TestApplyClahe:
     def test_clahe_wrong_ndim_raises(self):
         """Error: ValueError when image has wrong number of dimensions."""
         img_2d = np.zeros((100, 150), dtype=np.uint8)
-        with pytest.raises(ValueError, match="3 dimensions"):
+        with pytest.raises(ValueError, match="3-dimensional"):
             apply_clahe(img_2d)
 
     def test_clahe_wrong_dtype_raises(self):
@@ -247,7 +247,7 @@ class TestDetectShelfContour:
 
     def test_wrong_ndim_raises(self):
         """Error: ValueError when image is 2D."""
-        with pytest.raises(ValueError, match="3 dimensions"):
+        with pytest.raises(ValueError, match="3-dimensional"):
             detect_shelf_contour(np.zeros((100, 100), dtype=np.uint8))
 
     def test_wrong_dtype_raises(self):
@@ -327,7 +327,7 @@ class TestCorrectPerspective:
 
     def test_wrong_ndim_raises(self):
         """Error: ValueError when image is 2D."""
-        with pytest.raises(ValueError, match="3 dimensions"):
+        with pytest.raises(ValueError, match="3-dimensional"):
             correct_perspective(np.zeros((100, 100), dtype=np.uint8))
 
     def test_wrong_dtype_raises(self):

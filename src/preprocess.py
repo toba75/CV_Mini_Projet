@@ -10,6 +10,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from src import validate_image
+
 
 def load_image(path: str) -> np.ndarray:
     """Load an image from disk in BGR format.
@@ -62,16 +64,7 @@ def resize_image(image: np.ndarray, max_width: int = 1920) -> np.ndarray:
         ValueError: If *image* is None, empty, not 3-dimensional, or
             not uint8.
     """
-    if image is None:
-        raise ValueError("Input image must not be None.")
-    if not isinstance(image, np.ndarray) or image.size == 0:
-        raise ValueError("Input image must be a non-empty numpy array.")
-    if image.ndim != 3:
-        raise ValueError(
-            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
-        )
-    if image.dtype != np.uint8:
-        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+    validate_image(image)
 
     height, width = image.shape[:2]
 
@@ -108,16 +101,7 @@ def apply_clahe(
         ValueError: If *image* is None, empty, not 3-dimensional, or
             not uint8.
     """
-    if image is None:
-        raise ValueError("Input image must not be None.")
-    if not isinstance(image, np.ndarray) or image.size == 0:
-        raise ValueError("Input image must be a non-empty numpy array.")
-    if image.ndim != 3:
-        raise ValueError(
-            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
-        )
-    if image.dtype != np.uint8:
-        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+    validate_image(image)
 
     # Work on a copy — never modify the input in place (§R4)
     img = image.copy()
@@ -139,18 +123,8 @@ def apply_clahe(
     return result
 
 
-def _validate_image(image: np.ndarray | None) -> None:
-    """Raise ``ValueError`` if *image* is None, empty, or malformed."""
-    if image is None:
-        raise ValueError("Input image must not be None.")
-    if not isinstance(image, np.ndarray) or image.size == 0:
-        raise ValueError("Input image must be a non-empty numpy array.")
-    if image.ndim != 3:
-        raise ValueError(
-            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
-        )
-    if image.dtype != np.uint8:
-        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+# Keep module-level alias so that internal callers continue to work.
+_validate_image = validate_image
 
 
 def _order_corners(pts: np.ndarray) -> np.ndarray:

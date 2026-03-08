@@ -153,7 +153,7 @@ def evaluate_dataset(
     results_path = pathlib.Path(results_dir)
     gt_path = pathlib.Path(ground_truth_dir)
 
-    # Load ground truth CSV
+    # Load ground truth CSV via load_ground_truth for consistent validation
     csv_files = list(gt_path.glob("*.csv"))
     if not csv_files:
         return {
@@ -161,7 +161,13 @@ def evaluate_dataset(
             "average": {"detection_rate": 0.0, "cer": 0.0, "identification_rate": 0.0},
         }
 
-    df = pd.read_csv(csv_files[0])
+    try:
+        df = load_ground_truth(str(csv_files[0]))
+    except ValueError:
+        return {
+            "per_image": [],
+            "average": {"detection_rate": 0.0, "cer": 0.0, "identification_rate": 0.0},
+        }
     if df.empty:
         return {
             "per_image": [],
