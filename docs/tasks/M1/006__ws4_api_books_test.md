@@ -54,5 +54,5 @@ Implémenter un module de requête vers l'API Google Books et/ou Open Library. V
 - [x] Critères d'acceptation tous satisfaits.
 - [x] `ruff check src/ tests/` passe sans erreur.
 - [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS4] #006 GREEN: API bibliographique fonctionnelle`.
+- [x] **Commit GREEN** : `[WS4] #006 GREEN: API bibliographique fonctionnelle`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS4] #006 — API bibliographique`.

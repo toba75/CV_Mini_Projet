@@ -229,6 +229,137 @@ class TestGetBookMetadata:
 
 
 # ---------------------------------------------------------------------------
+# get_book_metadata — Google Books provider
+# ---------------------------------------------------------------------------
+
+class TestGetBookMetadataGoogleBooks:
+    """get_book_metadata fonctionne avec le provider googlebooks."""
+
+    @patch("src.postprocess.requests.get")
+    def test_googlebooks_returns_dict_for_valid_isbn(self, mock_get: MagicMock) -> None:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "totalItems": 1,
+            "items": [
+                {
+                    "volumeInfo": {
+                        "title": "Le Petit Prince",
+                        "authors": ["Antoine de Saint-Exupéry"],
+                        "industryIdentifiers": [
+                            {"type": "ISBN_13", "identifier": "9782070612758"},
+                        ],
+                    },
+                },
+            ],
+        }
+        mock_resp.raise_for_status.return_value = None
+        mock_get.return_value = mock_resp
+
+        result = get_book_metadata("9782070612758", provider="googlebooks")
+
+        assert isinstance(result, dict)
+        assert result["title"] == "Le Petit Prince"
+        assert result["provider"] == "googlebooks"
+        assert result["isbn"] == "9782070612758"
+
+    @patch("src.postprocess.requests.get")
+    def test_googlebooks_returns_none_for_no_items(self, mock_get: MagicMock) -> None:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {"totalItems": 0, "items": []}
+        mock_resp.raise_for_status.return_value = None
+        mock_get.return_value = mock_resp
+
+        result = get_book_metadata("0000000000000", provider="googlebooks")
+
+        assert result is None
+
+    @patch("src.postprocess.requests.get")
+    def test_googlebooks_uses_correct_url(self, mock_get: MagicMock) -> None:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "totalItems": 1,
+            "items": [
+                {
+                    "volumeInfo": {
+                        "title": "Test Book",
+                        "authors": ["Author"],
+                        "industryIdentifiers": [
+                            {"type": "ISBN_13", "identifier": "9781234567890"},
+                        ],
+                    },
+                },
+            ],
+        }
+        mock_resp.raise_for_status.return_value = None
+        mock_get.return_value = mock_resp
+
+        get_book_metadata("9781234567890", provider="googlebooks")
+
+        called_url = mock_get.call_args[0][0]
+        assert "googleapis.com" in called_url
+        assert "9781234567890" in called_url
+
+    @patch("src.postprocess.requests.get")
+    def test_openlibrary_uses_correct_url(self, mock_get: MagicMock) -> None:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {"title": "Test"}
+        mock_resp.raise_for_status.return_value = None
+        mock_get.return_value = mock_resp
+
+        get_book_metadata("9781234567890", provider="openlibrary")
+
+        called_url = mock_get.call_args[0][0]
+        assert "openlibrary.org" in called_url
+        assert "9781234567890" in called_url
+
+
+# ---------------------------------------------------------------------------
+# search_book — title filtering
+# ---------------------------------------------------------------------------
+
+class TestSearchBookTitleFiltering:
+    """search_book filtre les résultats sans titre."""
+
+    @patch("src.postprocess.requests.get")
+    def test_openlibrary_skips_docs_without_title(self, mock_get: MagicMock) -> None:
+        mock_get.return_value = _mock_openlibrary_response([
+            {"title": "Le Petit Prince", "author_name": ["Saint-Ex"], "isbn": ["123"]},
+            {"author_name": ["Unknown"], "isbn": ["456"]},
+        ])
+
+        results = search_book("Le Petit Prince")
+
+        assert len(results) == 1
+        assert results[0]["title"] == "Le Petit Prince"
+
+    @patch("src.postprocess.requests.get")
+    def test_googlebooks_skips_items_without_title(self, mock_get: MagicMock) -> None:
+        mock_get.return_value = _mock_googlebooks_response([
+            {
+                "volumeInfo": {
+                    "title": "Le Petit Prince",
+                    "authors": ["Saint-Ex"],
+                    "industryIdentifiers": [{"type": "ISBN_13", "identifier": "123"}],
+                },
+            },
+            {
+                "volumeInfo": {
+                    "authors": ["Unknown"],
+                },
+            },
+        ])
+
+        results = search_book("Le Petit Prince", provider="googlebooks")
+
+        assert len(results) == 1
+        assert results[0]["title"] == "Le Petit Prince"
+
+
+# ---------------------------------------------------------------------------
 # No hardcoded API keys
 # ---------------------------------------------------------------------------
 
