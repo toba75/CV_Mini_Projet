@@ -3,9 +3,9 @@
 import json
 import pathlib
 
-import editdistance
 import pandas as pd
 from rapidfuzz import fuzz
+from rapidfuzz.distance import Levenshtein
 
 REQUIRED_COLUMNS = ["image_filename", "spine_index", "title", "author"]
 
@@ -70,7 +70,7 @@ def compute_cer(predicted_text: str, ground_truth_text: str) -> float:
     """
     if len(ground_truth_text) == 0:
         return 1.0 if len(predicted_text) > 0 else 0.0
-    distance = editdistance.eval(predicted_text, ground_truth_text)
+    distance = Levenshtein.distance(predicted_text, ground_truth_text)
     return distance / len(ground_truth_text)
 
 

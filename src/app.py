@@ -1,7 +1,9 @@
 """ShelfScan — Application Streamlit pour l'inventaire de bibliothèque."""
 
 import copy
+import io
 import logging
+import os
 import tempfile
 from pathlib import Path
 
@@ -104,6 +106,7 @@ def prepare_editable_dataframe(result: dict) -> pd.DataFrame:
             "Auteur": book["author"],
             "ISBN": book["isbn"],
             "Confiance": book["confidence"],
+            # "manually_corrected" is an optional field added by apply_manual_corrections
             "Modifié": book.get("manually_corrected", False),
         }
         for book in books
@@ -131,7 +134,7 @@ def _run_pipeline_with_progress(image_path: str) -> dict:
 
     try:
         result = run_pipeline(image_path)
-    except Exception as exc:
+    except Exception as exc:  # Re-raised as RuntimeError; broad catch is intentional here
         progress_bar.empty()
         raise RuntimeError(
             f"Erreur lors de l'exécution du pipeline : {exc}"
@@ -149,7 +152,6 @@ def _display_original_tab(image_bytes: bytes, file_name: str) -> None:
         file_name: Nom du fichier uploadé.
     """
     from PIL import Image
-    import io
 
     st.image(image_bytes, caption="Image uploadée", use_container_width=True)
 
@@ -319,45 +321,48 @@ def main():
         pipeline_result = None
         pipeline_error = None
         try:
-            pipeline_result = _run_pipeline_with_progress(tmp_path)
-        except RuntimeError as exc:
-            pipeline_error = str(exc)
-
-        # Afficher les résultats par onglets
-        tabs = st.tabs([
-            "Original",
-            "Prétraitement",
-            "Segmentation",
-            "OCR",
-            "Inventaire",
-        ])
-
-        with tabs[0]:
-            _display_original_tab(image_bytes, file_name)
-
-        with tabs[1]:
             try:
-                _display_preprocess_tab(tmp_path)
-            except Exception as exc:
-                st.error(f"Erreur lors du prétraitement : {exc}")
+                pipeline_result = _run_pipeline_with_progress(tmp_path)
+            except RuntimeError as exc:
+                pipeline_error = str(exc)
 
-        with tabs[2]:
-            try:
-                _display_segmentation_tab(tmp_path)
-            except Exception as exc:
-                st.error(f"Erreur lors de la segmentation : {exc}")
+            # Afficher les résultats par onglets
+            tabs = st.tabs([
+                "Original",
+                "Prétraitement",
+                "Segmentation",
+                "OCR",
+                "Inventaire",
+            ])
 
-        with tabs[3]:
-            if pipeline_error is not None:
-                st.error(pipeline_error)
-            elif pipeline_result is not None:
-                _display_ocr_tab(pipeline_result)
+            with tabs[0]:
+                _display_original_tab(image_bytes, file_name)
 
-        with tabs[4]:
-            if pipeline_error is not None:
-                st.error(pipeline_error)
-            elif pipeline_result is not None:
-                _display_inventory_tab(pipeline_result, image_stem)
+            with tabs[1]:
+                try:
+                    _display_preprocess_tab(tmp_path)
+                except (RuntimeError, ValueError, FileNotFoundError, OSError) as exc:
+                    st.error(f"Erreur lors du prétraitement : {exc}")
+
+            with tabs[2]:
+                try:
+                    _display_segmentation_tab(tmp_path)
+                except (RuntimeError, ValueError, FileNotFoundError, OSError) as exc:
+                    st.error(f"Erreur lors de la segmentation : {exc}")
+
+            with tabs[3]:
+                if pipeline_error is not None:
+                    st.error(pipeline_error)
+                elif pipeline_result is not None:
+                    _display_ocr_tab(pipeline_result)
+
+            with tabs[4]:
+                if pipeline_error is not None:
+                    st.error(pipeline_error)
+                elif pipeline_result is not None:
+                    _display_inventory_tab(pipeline_result, image_stem)
+        finally:
+            os.unlink(tmp_path)
 
 
 if __name__ == "__main__":

@@ -328,9 +328,11 @@ class TestGroupTextLines:
 class TestDetectTextOnSpines:
     """Tests for detect_text_on_spines function."""
 
+    @patch("src.detect_text.init_detector")
     @patch("src.detect_text.detect_text_regions")
-    def test_returns_list_per_crop(self, mock_detect):
+    def test_returns_list_per_crop(self, mock_detect, mock_init):
         """Nominal: returns one result list per crop."""
+        mock_init.return_value = MagicMock()
         mock_detect.return_value = [
             {"bbox": [[10, 20], [100, 20], [100, 50], [10, 50]], "confidence": 0.9}
         ]

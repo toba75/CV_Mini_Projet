@@ -81,7 +81,7 @@ def resize_image(image: np.ndarray, max_width: int = 1920) -> np.ndarray:
 def apply_clahe(
     image: np.ndarray,
     clip_limit: float = 2.0,
-    tile_grid_size: tuple = (8, 8),
+    tile_grid_size: tuple[int, int] = (8, 8),
 ) -> np.ndarray:
     """Apply CLAHE on the luminance channel of a BGR image.
 
@@ -132,14 +132,14 @@ SHARPEN_KERNEL: np.ndarray = np.array(
 
 # CLAHE parameters for aggressive contrast enhancement
 ENHANCE_CLAHE_CLIP_LIMIT: float = 4.0
-ENHANCE_CLAHE_TILE_SIZE: tuple = (4, 4)
+ENHANCE_CLAHE_TILE_SIZE: tuple[int, int] = (4, 4)
 
 
 def enhance_for_difficult_text(
     image: np.ndarray,
     sharpen_kernel: np.ndarray = SHARPEN_KERNEL,
     clip_limit: float = ENHANCE_CLAHE_CLIP_LIMIT,
-    tile_grid_size: tuple = ENHANCE_CLAHE_TILE_SIZE,
+    tile_grid_size: tuple[int, int] = ENHANCE_CLAHE_TILE_SIZE,
 ) -> np.ndarray:
     """Enhance an image for difficult text detection/recognition.
 

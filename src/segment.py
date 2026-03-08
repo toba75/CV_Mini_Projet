@@ -304,7 +304,7 @@ def detect_empty_regions(
 
     result: list[bool] = []
     for crop in crops:
-        gray = cv2.cvtColor(crop.copy(), cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         variance = float(np.var(gray))
         result.append(variance < variance_threshold)
 
@@ -328,7 +328,7 @@ def classify_spine(crop: np.ndarray) -> dict:
     h, w = crop.shape[:2]
     aspect_ratio = h / w
 
-    gray = cv2.cvtColor(crop.copy(), cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
     variance = float(np.var(gray))
 
     if variance < DEFAULT_VARIANCE_THRESHOLD:
