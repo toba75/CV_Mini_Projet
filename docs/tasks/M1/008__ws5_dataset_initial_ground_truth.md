@@ -1,6 +1,6 @@
 # Tâche — Constituer le dataset initial et annoter le ground truth
 
-Statut : TODO
+Statut : DONE
 Ordre : 008
 Workstream : WS5
 Milestone : M1
@@ -38,27 +38,27 @@ Organiser les 15 photos existantes dans `data/raw/`, puis produire un fichier CS
 - Documenter les conditions de prise de vue (lieu, éclairage, appareil) dans un fichier `data/README.md`.
 
 ## Critères d'acceptation
-- [ ] 15 photos existantes déplacées dans `data/raw/` au format JPEG
-- [ ] Les photos couvrent au moins 3 conditions d'éclairage ou d'angle différentes
-- [ ] `data/ground_truth/ground_truth.csv` existe avec les colonnes `image_filename`, `spine_index`, `title`, `author`
-- [ ] Chaque photo a au moins 3 titres annotés dans le CSV
-- [ ] Le CSV est chargeable par pandas sans erreur
-- [ ] `load_ground_truth` charge et valide le CSV (colonnes attendues, pas de lignes vides)
-- [ ] Tests couvrent le chargement du CSV (colonnes, types, cas d'erreur)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] 15 photos existantes déplacées dans `data/raw/` au format JPEG
+- [x] Les photos couvrent au moins 3 conditions d'éclairage ou d'angle différentes
+- [x] `data/ground_truth/ground_truth.csv` existe avec les colonnes `image_filename`, `spine_index`, `title`, `author`
+- [x] Chaque photo a au moins 3 titres annotés dans le CSV
+- [x] Le CSV est chargeable par pandas sans erreur
+- [x] `load_ground_truth` charge et valide le CSV (colonnes attendues, pas de lignes vides)
+- [x] Tests couvrent le chargement du CSV (colonnes, types, cas d'erreur)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/008-dataset-ground-truth` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/008-dataset-ground-truth` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS5] #008 RED: tests chargement ground truth`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS5] #008 GREEN: dataset initial et ground truth`.
+- [x] Branche `task/008-dataset-ground-truth` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS5] #008 RED: tests chargement ground truth`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS5] #008 GREEN: dataset initial et ground truth`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS5] #008 — Dataset initial et ground truth`.

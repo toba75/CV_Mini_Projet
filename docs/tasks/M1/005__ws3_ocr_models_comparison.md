@@ -1,6 +1,6 @@
 # Tâche — Comparer les modèles OCR sur des crops manuels de tranches
 
-Statut : TODO
+Statut : DONE
 Ordre : 005
 Workstream : WS3
 Milestone : M1
@@ -32,28 +32,28 @@ Implémenter `src/ocr.py` avec une interface unifiée pour exécuter l'OCR via P
 - Préparer 3-4 crops manuels dans `data/raw/` pour les tests.
 
 ## Critères d'acceptation
-- [ ] `init_ocr_engine` initialise correctement chacun des 3 moteurs (PaddleOCR, TrOCR, Tesseract)
-- [ ] `init_ocr_engine` lève `ValueError` pour un nom de moteur inconnu
-- [ ] `recognize_text` retourne une liste de dictionnaires avec clés `text` et `confidence`
-- [ ] La confiance est un float entre 0 et 1
-- [ ] Sur un crop contenant du texte lisible, au moins un résultat non vide est retourné
-- [ ] `compare_engines` retourne des résultats pour chaque moteur demandé
-- [ ] Validation des entrées : `ValueError` sur image None ou vide
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `init_ocr_engine` initialise correctement chacun des 3 moteurs (PaddleOCR, TrOCR, Tesseract)
+- [x] `init_ocr_engine` lève `ValueError` pour un nom de moteur inconnu
+- [x] `recognize_text` retourne une liste de dictionnaires avec clés `text` et `confidence`
+- [x] La confiance est un float entre 0 et 1
+- [x] Sur un crop contenant du texte lisible, au moins un résultat non vide est retourné
+- [x] `compare_engines` retourne des résultats pour chaque moteur demandé
+- [x] Validation des entrées : `ValueError` sur image None ou vide
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/005-ocr-models-comparison` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/005-ocr-models-comparison` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS3] #005 RED: tests comparaison modèles OCR`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS3] #005 GREEN: comparaison OCR PaddleOCR/TrOCR/Tesseract`.
+- [x] Branche `task/005-ocr-models-comparison` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS3] #005 RED: tests comparaison modèles OCR`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS3] #005 GREEN: comparaison OCR PaddleOCR/TrOCR/Tesseract`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS3] #005 — Comparaison modèles OCR`.

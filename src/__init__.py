@@ -1,0 +1,1 @@
+"""ShelfScan source package."""
