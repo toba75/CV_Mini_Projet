@@ -38,6 +38,9 @@ pytesseract = None  # type: ignore[assignment]
 # ---------------------------------------------------------------------------
 SUPPORTED_ENGINES: tuple[str, ...] = ("paddleocr", "trocr", "tesseract")
 
+# Confidence threshold below which the fallback mechanism tries the next engine.
+DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD: float = 0.3
+
 # TrOCR default model identifier (configurable).
 TROCR_MODEL_NAME: str = "microsoft/trocr-base-printed"
 
@@ -297,3 +300,128 @@ def compare_engines(
         engine = init_ocr_engine(name)
         results[name] = recognize_text(image, engine)
     return results
+
+
+# ---------------------------------------------------------------------------
+# Fallback OCR
+# ---------------------------------------------------------------------------
+
+
+def _validate_engine_list(engines: list[str]) -> None:
+    """Validate that *engines* is a non-empty list of supported engine names.
+
+    Raises:
+        ValueError: If *engines* is empty or contains unsupported names.
+    """
+    if not engines:
+        raise ValueError("engines list must not be empty")
+    for name in engines:
+        if name not in SUPPORTED_ENGINES:
+            raise ValueError(
+                f"Unsupported engine '{name}'. "
+                f"Supported: {SUPPORTED_ENGINES}"
+            )
+
+
+def recognize_with_fallback(
+    image: np.ndarray,
+    engines: list[str],
+    confidence_threshold: float = DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD,
+) -> dict[str, object]:
+    """Run OCR with automatic fallback across multiple engines.
+
+    Tries each engine in order. If the first engine produces a result
+    with confidence >= *confidence_threshold*, it is returned immediately.
+    Otherwise, the next engine is tried. If no engine meets the threshold,
+    the result with the highest confidence across all engines is returned.
+
+    Args:
+        image: BGR uint8 image (OpenCV convention).
+        engines: Ordered list of engine names to try.
+        confidence_threshold: Minimum confidence to accept without fallback.
+
+    Returns:
+        Dict with keys ``"text"`` (str), ``"confidence"`` (float 0-1),
+        ``"engine"`` (str), ``"engine_used"`` (str), and
+        ``"engines_tried"`` (list[str]).
+
+    Raises:
+        ValueError: If *image* is invalid, *engines* is empty, or
+            an engine name is not in :data:`SUPPORTED_ENGINES`.
+    """
+    _validate_image(image)
+    _validate_engine_list(engines)
+
+    best_result: dict[str, object] | None = None
+    best_confidence: float = -1.0
+    engines_tried: list[str] = []
+
+    for engine_name in engines:
+        engines_tried.append(engine_name)
+        engine_obj = init_ocr_engine(engine_name)
+        raw_results = recognize_text(image, engine_obj)
+        aggregated = _aggregate_ocr_results(raw_results, engine_name)
+        conf = float(aggregated["confidence"])
+
+        if conf > best_confidence:
+            best_confidence = conf
+            best_result = aggregated
+
+        if conf >= confidence_threshold:
+            logger.info(
+                "Fallback OCR: engine '%s' met threshold (%.2f >= %.2f)",
+                engine_name,
+                conf,
+                confidence_threshold,
+            )
+            break
+
+        logger.info(
+            "Fallback OCR: engine '%s' below threshold (%.2f < %.2f), trying next",
+            engine_name,
+            conf,
+            confidence_threshold,
+        )
+
+    # best_result is guaranteed non-None because engines is non-empty.
+    assert best_result is not None
+    result: dict[str, object] = {
+        "text": best_result["text"],
+        "confidence": best_result["confidence"],
+        "engine": best_result["engine"],
+        "engine_used": best_result["engine"],
+        "engines_tried": list(engines_tried),
+    }
+    return result
+
+
+def recognize_batch_with_fallback(
+    crops: list[np.ndarray],
+    engines: list[str],
+    confidence_threshold: float = DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD,
+) -> list[dict[str, object]]:
+    """Run OCR with fallback on a batch of crops.
+
+    Args:
+        crops: List of BGR uint8 images.
+        engines: Ordered list of engine names to try for each crop.
+        confidence_threshold: Minimum confidence to accept without fallback.
+
+    Returns:
+        List of result dicts, one per crop (same format as
+        :func:`recognize_with_fallback`).
+
+    Raises:
+        ValueError: If *engines* is empty or contains unsupported names.
+    """
+    _validate_engine_list(engines)
+    if not crops:
+        return []
+    return [
+        recognize_with_fallback(
+            crop,
+            engines,
+            confidence_threshold=confidence_threshold,
+        )
+        for crop in crops
+    ]
