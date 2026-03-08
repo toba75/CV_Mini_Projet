@@ -5,7 +5,13 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from src.ocr import compare_engines, init_ocr_engine, recognize_text
+from src.ocr import (
+    compare_engines,
+    init_ocr_engine,
+    recognize_batch,
+    recognize_text,
+    recognize_text_unified,
+)
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -217,3 +223,136 @@ class TestCompareEngines:
         empty = np.empty((0, 0, 3), dtype=np.uint8)
         with pytest.raises(ValueError, match="image"):
             compare_engines(empty, ["paddleocr"])
+
+
+# ---------------------------------------------------------------------------
+# recognize_text_unified
+# ---------------------------------------------------------------------------
+
+
+class TestRecognizeTextUnified:
+    """Tests for recognize_text_unified."""
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_returns_dict_with_expected_keys(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = [
+            {"text": "hello", "confidence": 0.95},
+        ]
+        image = _make_image()
+        result = recognize_text_unified(image, engine="paddleocr")
+        assert isinstance(result, dict)
+        assert "text" in result
+        assert "confidence" in result
+        assert "engine" in result
+        assert isinstance(result["text"], str)
+        assert isinstance(result["confidence"], float)
+        assert result["engine"] == "paddleocr"
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_concatenates_multiple_results(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = [
+            {"text": "hello", "confidence": 0.9},
+            {"text": "world", "confidence": 0.8},
+        ]
+        image = _make_image()
+        result = recognize_text_unified(image, engine="paddleocr")
+        assert "hello" in result["text"]
+        assert "world" in result["text"]
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_empty_result_when_no_text(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = []
+        image = _make_image()
+        result = recognize_text_unified(image, engine="paddleocr")
+        assert result["text"] == ""
+        assert result["confidence"] == 0.0
+        assert result["engine"] == "paddleocr"
+
+    def test_unknown_engine_raises(self) -> None:
+        image = _make_image()
+        with pytest.raises(ValueError):
+            recognize_text_unified(image, engine="unknown_engine")
+
+    def test_none_image_raises(self) -> None:
+        with pytest.raises(ValueError):
+            recognize_text_unified(None, engine="paddleocr")
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_engine_key_matches_argument(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = [{"text": "x", "confidence": 0.5}]
+        image = _make_image()
+        result = recognize_text_unified(image, engine="tesseract")
+        assert result["engine"] == "tesseract"
+
+
+# ---------------------------------------------------------------------------
+# recognize_batch
+# ---------------------------------------------------------------------------
+
+
+class TestRecognizeBatch:
+    """Tests for recognize_batch."""
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_returns_list_of_dicts(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = [{"text": "hi", "confidence": 0.9}]
+        crops = [_make_image(), _make_image()]
+        results = recognize_batch(crops, engine="paddleocr")
+        assert isinstance(results, list)
+        assert len(results) == 2
+        for r in results:
+            assert isinstance(r, dict)
+            assert "text" in r
+            assert "confidence" in r
+            assert "engine" in r
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_empty_list_returns_empty(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        mock_init.return_value = MagicMock()
+        results = recognize_batch([], engine="paddleocr")
+        assert results == []
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_none_image_in_list_raises(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        mock_init.return_value = MagicMock()
+        mock_recognize.side_effect = ValueError("image must not be None")
+        with pytest.raises(ValueError):
+            recognize_batch([None], engine="paddleocr")
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_engine_initialized_once(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        """Engine should be initialized only once for all crops."""
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = [{"text": "a", "confidence": 0.9}]
+        crops = [_make_image(), _make_image(), _make_image()]
+        recognize_batch(crops, engine="paddleocr")
+        mock_init.assert_called_once()

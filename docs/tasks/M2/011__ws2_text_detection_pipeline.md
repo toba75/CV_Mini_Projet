@@ -1,6 +1,6 @@
 # Tâche — Intégrer la détection de texte dans le pipeline
 
-Statut : TODO
+Statut : DONE
 Ordre : 011
 Workstream : WS2
 Milestone : M2
@@ -34,27 +34,27 @@ Adapter `src/detect_text.py` pour fonctionner en mode pipeline : recevoir un cro
 - Intégration dans `pipeline.py` : chaîner segmentation → détection de texte.
 
 ## Critères d'acceptation
-- [ ] `detect_text_regions` retourne une liste de dicts avec les clés `bbox`, `confidence`, `text`
-- [ ] `detect_text_regions` retourne une liste vide si aucun texte détecté (pas d'exception)
-- [ ] `group_text_lines` regroupe correctement les régions proches verticalement
-- [ ] `group_text_lines` garde les régions isolées dans leur propre groupe
-- [ ] `detect_text_on_spines` traite correctement une liste de crops et retourne un résultat par crop
-- [ ] Validation des entrées : `ValueError` sur crop None ou vide
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords (crop sans texte, crop avec texte multi-lignes)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `detect_text_regions` retourne une liste de dicts avec les clés `bbox`, `confidence`, `text`
+- [x] `detect_text_regions` retourne une liste vide si aucun texte détecté (pas d'exception)
+- [x] `group_text_lines` regroupe correctement les régions proches verticalement
+- [x] `group_text_lines` garde les régions isolées dans leur propre groupe
+- [x] `detect_text_on_spines` traite correctement une liste de crops et retourne un résultat par crop
+- [x] Validation des entrées : `ValueError` sur crop None ou vide
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords (crop sans texte, crop avec texte multi-lignes)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/011-text-detection-pipeline` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/011-text-detection-pipeline` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS2] #011 RED: tests intégration détection texte pipeline`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS2] #011 GREEN: détection de texte intégrée au pipeline`.
+- [x] Branche `milestone/M2` utilisée pour le développement.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS2] #011 RED: tests intégration détection texte pipeline`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS2] #011 GREEN: détection de texte intégrée au pipeline`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS2] #011 — Détection texte pipeline`.

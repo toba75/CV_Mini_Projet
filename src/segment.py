@@ -13,24 +13,16 @@ import math
 import cv2
 import numpy as np
 
+from src import validate_image
+
 # Minimum gap between two x-cut positions (pixels). §R2
 MIN_GAP_PX: int = 5
 # Minimum gap between two x-cut positions as a ratio of image width. §R2
 MIN_GAP_RATIO: float = 0.02
 
 
-def _validate_image(image: np.ndarray | None) -> None:
-    """Raise ``ValueError`` if *image* is None, empty, or malformed."""
-    if image is None:
-        raise ValueError("Input image must not be None.")
-    if not isinstance(image, np.ndarray) or image.size == 0:
-        raise ValueError("Input image must be a non-empty numpy array.")
-    if image.ndim != 3:
-        raise ValueError(
-            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
-        )
-    if image.dtype != np.uint8:
-        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+# Keep module-level alias so that internal callers continue to work.
+_validate_image = validate_image
 
 
 def detect_vertical_lines(
@@ -143,6 +135,139 @@ def split_spines(
         if x_end > x_start:
             crop = image[:height, x_start:x_end].copy()
             crops.append(crop)
+
+    return crops
+
+
+def filter_lines(
+    lines: list[tuple],
+    image_height: int,
+    min_length_ratio: float = 0.3,
+    max_angle_deg: float = 15.0,
+) -> list[tuple]:
+    """Filter lines that are too short or too inclined from vertical.
+
+    Args:
+        lines: List of (x1, y1, x2, y2) line coordinates.
+        image_height: Height of the source image in pixels.
+        min_length_ratio: Minimum line length as a ratio of *image_height*
+            (default 0.3).
+        max_angle_deg: Maximum angle in degrees from vertical to keep a
+            line (default 15.0).
+
+    Returns:
+        Filtered list of (x1, y1, x2, y2) tuples.
+    """
+    min_length = min_length_ratio * image_height
+    filtered: list[tuple] = []
+    for x1, y1, x2, y2 in lines:
+        dx = abs(x2 - x1)
+        dy = abs(y2 - y1)
+        length = math.hypot(dx, dy)
+        if length < min_length:
+            continue
+        angle_deg = math.degrees(math.atan2(dx, dy))
+        if angle_deg > max_angle_deg:
+            continue
+        filtered.append((x1, y1, x2, y2))
+    return filtered
+
+
+def split_wide_gaps(
+    lines: list[tuple],
+    image_width: int,
+    median_width: float,
+) -> list[tuple]:
+    """Insert virtual vertical lines where the gap between consecutive
+    lines exceeds 2× the *median_width*.
+
+    Args:
+        lines: List of (x1, y1, x2, y2) line coordinates, sorted by x.
+        image_width: Width of the source image in pixels.
+        median_width: Median width of detected segments.
+
+    Returns:
+        Augmented list of lines with virtual lines inserted, sorted by x.
+    """
+    if not lines or median_width <= 0:
+        return list(lines)
+
+    threshold = 2.0 * median_width
+
+    # Compute x-cut positions
+    x_cuts = sorted(int((x1 + x2) / 2) for x1, _, x2, _ in lines)
+
+    # Determine representative y-span from existing lines
+    y_min = min(min(y1, y2) for _, y1, _, y2 in lines)
+    y_max = max(max(y1, y2) for _, y1, _, y2 in lines)
+
+    augmented = list(lines)
+
+    for i in range(len(x_cuts) - 1):
+        gap = x_cuts[i + 1] - x_cuts[i]
+        if gap > threshold:
+            n_virtual = int(gap / median_width)
+            step = gap / (n_virtual + 1)
+            for j in range(1, n_virtual + 1):
+                vx = int(x_cuts[i] + j * step)
+                augmented.append((vx, y_min, vx, y_max))
+
+    # Sort by x position
+    augmented.sort(key=lambda ln: (ln[0] + ln[2]) / 2)
+    return augmented
+
+
+def crop_spines(
+    image: np.ndarray,
+    lines: list[tuple],
+    min_width: int = 20,
+) -> list[np.ndarray]:
+    """Produce individual spine crops from filtered lines.
+
+    Similar to :func:`split_spines` but discards crops narrower than
+    *min_width*.
+
+    Args:
+        image: Input BGR image (uint8).
+        lines: List of (x1, y1, x2, y2) line coordinates, sorted by x.
+        min_width: Minimum crop width in pixels (default 20). Crops
+            narrower than this are discarded.
+
+    Returns:
+        List of cropped BGR images with width >= *min_width*.
+
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
+    """
+    _validate_image(image)
+
+    if not lines:
+        return [image.copy()]
+
+    height, width = image.shape[:2]
+
+    x_cuts_raw = sorted(int((x1 + x2) / 2) for x1, _, x2, _ in lines)
+
+    # Merge nearby cuts
+    min_gap = max(MIN_GAP_PX, int(width * MIN_GAP_RATIO))
+    x_cuts: list[int] = []
+    for x in x_cuts_raw:
+        if not x_cuts or (x - x_cuts[-1]) >= min_gap:
+            x_cuts.append(x)
+
+    boundaries = [0] + x_cuts + [width]
+
+    crops: list[np.ndarray] = []
+    for i in range(len(boundaries) - 1):
+        x_start = boundaries[i]
+        x_end = boundaries[i + 1]
+        crop_width = x_end - x_start
+        if crop_width >= min_width:
+            crop = image[:height, x_start:x_end].copy()
+            crops.append(crop)
+
+    if not crops:
+        return [image.copy()]
 
     return crops
 

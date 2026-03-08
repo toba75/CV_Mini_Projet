@@ -16,6 +16,8 @@ import logging
 import cv2
 import numpy as np
 
+from src import validate_image
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -50,20 +52,8 @@ TESSERACT_MIN_CONF: int = 0
 # Validation helpers
 # ---------------------------------------------------------------------------
 
-def _validate_image(image: np.ndarray | None) -> None:
-    """Raise ``ValueError`` if *image* is None, empty, or malformed."""
-    if image is None:
-        raise ValueError("image must not be None")
-    if image.size == 0:
-        raise ValueError("image must not be empty")
-    if image.ndim != 3:
-        raise ValueError(
-            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
-        )
-    if image.dtype != np.uint8:
-        raise ValueError(
-            f"image dtype must be uint8, got {image.dtype}"
-        )
+# Keep module-level alias so that internal callers continue to work.
+_validate_image = validate_image
 
 
 # ---------------------------------------------------------------------------
@@ -201,6 +191,88 @@ def _recognize_tesseract(
             "text": str(text),
             "confidence": float(conf_val) / 100.0,
         })
+    return results
+
+
+def _aggregate_ocr_results(
+    results: list[dict[str, object]], engine: str
+) -> dict[str, object]:
+    """Aggregate a list of per-line OCR results into a single dict.
+
+    Args:
+        results: List of dicts with ``"text"`` and ``"confidence"`` keys,
+            as returned by :func:`recognize_text`.
+        engine: Engine name to embed in the returned dict.
+
+    Returns:
+        Dict with keys ``"text"`` (concatenated texts), ``"confidence"``
+        (mean confidence), and ``"engine"``.
+    """
+    if not results:
+        return {"text": "", "confidence": 0.0, "engine": engine}
+    text = " ".join(r["text"] for r in results)
+    confidence = sum(float(r["confidence"]) for r in results) / len(results)
+    return {"text": text, "confidence": confidence, "engine": engine}
+
+
+def recognize_text_unified(
+    crop: np.ndarray,
+    engine: str = "paddleocr",
+) -> dict[str, object]:
+    """Unified OCR interface: run OCR on a single crop.
+
+    Args:
+        crop: BGR uint8 image (oriented text crop).
+        engine: Engine name — one of :data:`SUPPORTED_ENGINES`.
+
+    Returns:
+        Dict with keys ``"text"`` (str), ``"confidence"`` (float 0-1),
+        and ``"engine"`` (str).
+
+    Raises:
+        ValueError: If *crop* is invalid or *engine* is unknown.
+    """
+    _validate_image(crop)
+    if engine not in SUPPORTED_ENGINES:
+        raise ValueError(
+            f"Unknown OCR engine '{engine}'. "
+            f"Supported: {SUPPORTED_ENGINES}"
+        )
+    engine_obj = init_ocr_engine(engine)
+    results = recognize_text(crop, engine_obj)
+    return _aggregate_ocr_results(results, engine)
+
+
+def recognize_batch(
+    crops: list[np.ndarray],
+    engine: str = "paddleocr",
+) -> list[dict[str, object]]:
+    """Run OCR on a list of crops, reusing a single engine instance.
+
+    Args:
+        crops: List of BGR uint8 images.
+        engine: Engine name — one of :data:`SUPPORTED_ENGINES`.
+
+    Returns:
+        List of dicts, one per crop, each with keys ``"text"``,
+        ``"confidence"``, ``"engine"``.
+
+    Raises:
+        ValueError: If any crop is invalid or *engine* is unknown.
+    """
+    if engine not in SUPPORTED_ENGINES:
+        raise ValueError(
+            f"Unknown OCR engine '{engine}'. "
+            f"Supported: {SUPPORTED_ENGINES}"
+        )
+    if not crops:
+        return []
+    engine_obj = init_ocr_engine(engine)
+    results: list[dict[str, object]] = []
+    for crop in crops:
+        _validate_image(crop)
+        ocr_results = recognize_text(crop, engine_obj)
+        results.append(_aggregate_ocr_results(ocr_results, engine))
     return results
 
 

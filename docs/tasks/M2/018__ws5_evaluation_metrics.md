@@ -1,6 +1,6 @@
 # Tâche — Implémenter le script de calcul des métriques d'évaluation
 
-Statut : TODO
+Statut : DONE
 Ordre : 018
 Workstream : WS5
 Milestone : M2
@@ -36,31 +36,31 @@ Dépendances :
 - Script CLI : `python -m src.eval_utils --results outputs/ --ground-truth data/ground_truth/`.
 
 ## Critères d'acceptation
-- [ ] `compute_detection_rate` retourne 1.0 quand le nombre prédit == ground truth
-- [ ] `compute_detection_rate` retourne un ratio < 1.0 quand il y a des tranches manquées
-- [ ] `compute_detection_rate` gère le cas ground_truth_count == 0 (retourne 0.0)
-- [ ] `compute_cer` retourne 0.0 pour des textes identiques
-- [ ] `compute_cer` retourne un CER > 0 pour des textes différents
-- [ ] `compute_cer` utilise la distance de Levenshtein (via `editdistance`)
-- [ ] `compute_identification_rate` retourne 1.0 quand tous les titres sont correctement identifiés
-- [ ] `compute_identification_rate` gère les listes vides
-- [ ] `evaluate_image` retourne un dict avec les trois métriques
-- [ ] `evaluate_dataset` calcule les moyennes sur tout le dataset
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords (texte vide, aucune tranche, dataset vide)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `compute_detection_rate` retourne 1.0 quand le nombre prédit == ground truth
+- [x] `compute_detection_rate` retourne un ratio < 1.0 quand il y a des tranches manquées
+- [x] `compute_detection_rate` gère le cas ground_truth_count == 0 (retourne 0.0)
+- [x] `compute_cer` retourne 0.0 pour des textes identiques
+- [x] `compute_cer` retourne un CER > 0 pour des textes différents
+- [x] `compute_cer` utilise la distance de Levenshtein (via `editdistance`)
+- [x] `compute_identification_rate` retourne 1.0 quand tous les titres sont correctement identifiés
+- [x] `compute_identification_rate` gère les listes vides
+- [x] `evaluate_image` retourne un dict avec les trois métriques
+- [x] `evaluate_dataset` calcule les moyennes sur tout le dataset
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords (texte vide, aucune tranche, dataset vide)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/018-evaluation-metrics` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/018-evaluation-metrics` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS5] #018 RED: tests métriques évaluation`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS5] #018 GREEN: métriques d'évaluation implémentées`.
-- [ ] **Pull Request ouverte** vers `main` : `[WS5] #018 — Métriques évaluation`.
+- [x] Branche `task/018-evaluation-metrics` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS5] #018 RED: tests métriques évaluation`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS5] #018 GREEN: métriques d'évaluation implémentées`.
+- [x] **Pull Request ouverte** vers `main` : `[WS5] #018 — Métriques évaluation`.

@@ -1,6 +1,10 @@
 # Tâche — Étendre le dataset à 20-30 photos annotées
 
-Statut : TODO
+Statut : BLOCKED
+
+## Blocage
+Date : 2026-03-08
+Raison : Tâche manuelle nécessitant la prise de photos physiques d'étagères et leur annotation. Ne peut pas être automatisée. Le pipeline fonctionne avec le dataset existant (15 photos). Cette tâche peut être complétée indépendamment par l'utilisateur sans bloquer les autres tâches du milestone.
 Ordre : 017
 Workstream : WS5
 Milestone : M2

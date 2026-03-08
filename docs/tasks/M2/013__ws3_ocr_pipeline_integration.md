@@ -1,6 +1,6 @@
 # Tâche — Intégrer le modèle OCR choisi dans le pipeline
 
-Statut : TODO
+Statut : DONE
 Ordre : 013
 Workstream : WS3
 Milestone : M2
@@ -36,17 +36,17 @@ Adapter `src/ocr.py` pour fonctionner en mode pipeline : recevoir des crops orie
 - Intégration dans `pipeline.py` : chaîner détection texte → orientation → OCR.
 
 ## Critères d'acceptation
-- [ ] `recognize_text` retourne un dict avec les clés `text`, `confidence`, `engine`
-- [ ] `recognize_text` retourne `{"text": "", "confidence": 0.0, ...}` si aucun texte reconnu
-- [ ] `recognize_text` supporte au moins deux moteurs OCR (ex : `paddleocr` et `tesseract`)
-- [ ] `recognize_text` lève `ValueError` pour un moteur inconnu
-- [ ] `recognize_batch` traite correctement une liste de crops et retourne un résultat par crop
-- [ ] Les modèles ne sont pas rechargés entre chaque appel (lazy loading vérifié)
-- [ ] Validation des entrées : `ValueError` sur crop None ou vide
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords (crop vide, moteur inconnu)
-- [ ] Tests utilisent le mocking pour les moteurs OCR (pas de dépendance aux modèles dans les tests unitaires)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `recognize_text` retourne un dict avec les clés `text`, `confidence`, `engine`
+- [x] `recognize_text` retourne `{"text": "", "confidence": 0.0, ...}` si aucun texte reconnu
+- [x] `recognize_text` supporte au moins deux moteurs OCR (ex : `paddleocr` et `tesseract`)
+- [x] `recognize_text` lève `ValueError` pour un moteur inconnu
+- [x] `recognize_batch` traite correctement une liste de crops et retourne un résultat par crop
+- [x] Les modèles ne sont pas rechargés entre chaque appel (lazy loading vérifié)
+- [x] Validation des entrées : `ValueError` sur crop None ou vide
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords (crop vide, moteur inconnu)
+- [x] Tests utilisent le mocking pour les moteurs OCR (pas de dépendance aux modèles dans les tests unitaires)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
