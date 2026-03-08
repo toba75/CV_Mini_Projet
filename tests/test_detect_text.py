@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from src.detect_text import detect_text_regions, init_detector
+from src.detect_text import DEFAULT_DET_CONFIDENCE, detect_text_regions, init_detector
 
 
 # ---------------------------------------------------------------------------
@@ -60,6 +60,11 @@ class TestInitDetector:
         """Error: ValueError for unsupported model name."""
         with pytest.raises(ValueError, match="Unsupported model"):
             init_detector("unknown_model")
+
+    def test_init_detector_craft_raises(self):
+        """Error: ValueError for craft model (not implemented)."""
+        with pytest.raises(ValueError, match="Only 'paddleocr' is currently available"):
+            init_detector("craft")
 
 
 # ---------------------------------------------------------------------------
@@ -153,7 +158,7 @@ class TestDetectTextRegionsBehaviour:
         assert result == []
 
     def test_detector_ocr_called_with_image(self):
-        """Nominal: the detector.ocr method is called with the image."""
+        """Nominal: the detector.ocr method is called with image content."""
         img = _make_image()
         detector = _mock_detector_with_results()
 
@@ -162,6 +167,7 @@ class TestDetectTextRegionsBehaviour:
         detector.ocr.assert_called_once()
         call_args = detector.ocr.call_args
         passed_image = call_args[0][0]
+        # A defensive copy is made, so the object differs but content matches.
         np.testing.assert_array_equal(passed_image, img)
 
 
@@ -186,6 +192,30 @@ class TestDetectTextRegionsValidation:
         """Error: ValueError when image is not a numpy array."""
         with pytest.raises(ValueError, match="numpy array"):
             detect_text_regions("not_an_image")
+
+    def test_2d_image_raises_valueerror(self):
+        """Error: ValueError when image is 2-dimensional (grayscale)."""
+        img = np.zeros((100, 100), dtype=np.uint8)
+        with pytest.raises(ValueError, match="3-dimensional"):
+            detect_text_regions(img)
+
+    def test_4d_image_raises_valueerror(self):
+        """Error: ValueError when image is 4-dimensional."""
+        img = np.zeros((1, 100, 100, 3), dtype=np.uint8)
+        with pytest.raises(ValueError, match="3-dimensional"):
+            detect_text_regions(img)
+
+    def test_float_image_raises_valueerror(self):
+        """Error: ValueError when image dtype is float64 instead of uint8."""
+        img = np.zeros((100, 100, 3), dtype=np.float64)
+        with pytest.raises(ValueError, match="uint8"):
+            detect_text_regions(img)
+
+    def test_float32_image_raises_valueerror(self):
+        """Error: ValueError when image dtype is float32 instead of uint8."""
+        img = np.zeros((100, 100, 3), dtype=np.float32)
+        with pytest.raises(ValueError, match="uint8"):
+            detect_text_regions(img)
 
 
 # ---------------------------------------------------------------------------
@@ -213,3 +243,29 @@ class TestDetectTextRegionsEdgeCases:
 
         assert isinstance(result, list)
         assert len(result) >= 1
+
+    def test_original_image_not_modified(self):
+        """Edge: the original image array is not modified by detect_text_regions."""
+        img = _make_image()
+        original = img.copy()
+        detector = _mock_detector_with_results()
+
+        detect_text_regions(img, detector=detector)
+
+        np.testing.assert_array_equal(img, original)
+
+    def test_default_det_confidence_used_when_no_score(self):
+        """Edge: DEFAULT_DET_CONFIDENCE is used when detection has no score."""
+        detector = MagicMock()
+        # Simulate det-only output: bbox without confidence score
+        detector.ocr.return_value = [
+            [
+                [[[10.0, 20.0], [100.0, 20.0], [100.0, 50.0], [10.0, 50.0]]],
+            ]
+        ]
+        img = _make_image()
+
+        result = detect_text_regions(img, detector=detector)
+
+        assert len(result) == 1
+        assert result[0]["confidence"] == DEFAULT_DET_CONFIDENCE

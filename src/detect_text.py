@@ -2,12 +2,17 @@
 
 import numpy as np
 
+# PaddleOCR in det-only mode (rec=False) does not return a confidence score
+# for detected text regions. We use 1.0 as the default confidence in that case.
+DEFAULT_DET_CONFIDENCE: float = 1.0
+
 
 def init_detector(model_name: str = "paddleocr"):
     """Initialize a text detector.
 
     Args:
-        model_name: Name of the detection model ("paddleocr" or "craft").
+        model_name: Name of the detection model. Currently only "paddleocr"
+            is supported.
 
     Returns:
         Initialized detector object.
@@ -15,19 +20,16 @@ def init_detector(model_name: str = "paddleocr"):
     Raises:
         ValueError: If model_name is not supported.
     """
-    if model_name not in ("paddleocr", "craft"):
+    if model_name != "paddleocr":
         raise ValueError(
-            f"Unsupported model: {model_name}. Use 'paddleocr' or 'craft'."
+            f"Unsupported model: {model_name}. Only 'paddleocr' is currently available."
         )
 
-    if model_name == "paddleocr":
-        from paddleocr import PaddleOCR
+    from paddleocr import PaddleOCR
 
-        return PaddleOCR(
-            use_angle_cls=True, lang="fr", det=True, rec=False, show_log=False
-        )
-
-    raise ValueError(f"Model '{model_name}' is not yet implemented.")
+    return PaddleOCR(
+        use_angle_cls=True, lang="fr", det=True, rec=False, show_log=False
+    )
 
 
 def detect_text_regions(
@@ -53,6 +55,12 @@ def detect_text_regions(
         raise ValueError("Image must be a numpy array.")
     if image.size == 0:
         raise ValueError("Image cannot be empty.")
+    if image.ndim != 3:
+        raise ValueError("Image must be 3-dimensional (H, W, C).")
+    if image.dtype != np.uint8:
+        raise ValueError("Image must be uint8.")
+
+    image = image.copy()
 
     if detector is None:
         detector = init_detector()
@@ -65,10 +73,12 @@ def detect_text_regions(
             bbox_raw = detection[0] if isinstance(detection[0], list) else detection
             if isinstance(bbox_raw, (list, np.ndarray)) and len(bbox_raw) >= 4:
                 points = [[float(p[0]), float(p[1])] for p in bbox_raw[:4]]
+                # In det-only mode, PaddleOCR may not return a confidence
+                # score; use DEFAULT_DET_CONFIDENCE in that case.
                 confidence = (
                     float(detection[1])
                     if isinstance(detection, (list, tuple)) and len(detection) > 1
-                    else 1.0
+                    else DEFAULT_DET_CONFIDENCE
                 )
                 confidence = max(0.0, min(1.0, confidence))
                 regions.append({"bbox": points, "confidence": confidence})
