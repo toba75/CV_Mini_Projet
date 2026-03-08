@@ -58,5 +58,5 @@ Identifier les 3 à 5 types d'échec les plus fréquents du pipeline, les docume
 - [x] Critères d'acceptation tous satisfaits.
 - [x] `ruff check src/ tests/` passe sans erreur.
 - [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS-5] #028 GREEN: analyse cas d'échec`.
-- [ ] **Pull Request ouverte** vers `main` : `[WS-5] #028 — Analyse des cas d'échec pour la soutenance`.
+- [x] **Commit GREEN** : `[WS-5] #028 GREEN: analyse cas d'échec`.
+- [x] **Pull Request ouverte** vers `main` : `[WS-5] #028 — Analyse des cas d'échec pour la soutenance`.

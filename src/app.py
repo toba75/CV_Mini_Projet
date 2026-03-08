@@ -102,6 +102,7 @@ def prepare_editable_dataframe(result: dict) -> pd.DataFrame:
     books = result["books"]
     rows = [
         {
+            "spine_id": book["spine_id"],
             "Titre": book["title"],
             "Auteur": book["author"],
             "ISBN": book["isbn"],
@@ -134,7 +135,7 @@ def _run_pipeline_with_progress(image_path: str) -> dict:
 
     try:
         result = run_pipeline(image_path)
-    except Exception as exc:  # Re-raised as RuntimeError; broad catch is intentional here
+    except (ValueError, FileNotFoundError, OSError) as exc:
         progress_bar.empty()
         raise RuntimeError(
             f"Erreur lors de l'exécution du pipeline : {exc}"
@@ -248,6 +249,9 @@ def _display_inventory_tab(result: dict, image_stem: str) -> None:
             "Modifié": st.column_config.CheckboxColumn(
                 "Modifié", disabled=True
             ),
+            "spine_id": st.column_config.NumberColumn(
+                "spine_id", disabled=True
+            ),
         }
         edited_df = st.data_editor(
             df,
@@ -258,10 +262,14 @@ def _display_inventory_tab(result: dict, image_stem: str) -> None:
         )
 
         # Détecter les modifications et mettre à jour les corrections
+        # Utiliser spine_id comme clé de jointure au lieu de l'index positionnel
         books = corrected_result["books"]
-        for idx, book in enumerate(books):
-            spine_id = book["spine_id"]
-            edited_row = edited_df.iloc[idx]
+        spine_id_to_book = {book["spine_id"]: book for book in books}
+        for _, edited_row in edited_df.iterrows():
+            spine_id = edited_row["spine_id"]
+            book = spine_id_to_book.get(spine_id)
+            if book is None:
+                continue
             changes = {}
             if edited_row["Titre"] != book["title"]:
                 changes["title"] = edited_row["Titre"]
@@ -275,7 +283,7 @@ def _display_inventory_tab(result: dict, image_stem: str) -> None:
                 st.session_state.manual_corrections[spine_id] = existing
 
         # Export avec corrections appliquées
-        export_df = edited_df.drop(columns=["Modifié"])
+        export_df = edited_df.drop(columns=["Modifié", "spine_id"])
         csv_content = export_df.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="Exporter en CSV",

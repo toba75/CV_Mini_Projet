@@ -59,5 +59,5 @@ Exécuter le pipeline complet sur tout le dataset annoté, calculer les 4 métri
 - [x] Critères d'acceptation tous satisfaits.
 - [x] `ruff check src/ tests/` passe sans erreur.
 - [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS-5] #027 GREEN: évaluation complète dataset`.
-- [ ] **Pull Request ouverte** vers `main` : `[WS-5] #027 — Évaluation complète sur le dataset annoté`.
+- [x] **Commit GREEN** : `[WS-5] #027 GREEN: évaluation complète dataset`.
+- [x] **Pull Request ouverte** vers `main` : `[WS-5] #027 — Évaluation complète sur le dataset annoté`.

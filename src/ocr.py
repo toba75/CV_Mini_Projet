@@ -50,6 +50,16 @@ TROCR_DEFAULT_CONFIDENCE: float = 1.0
 # Tesseract confidence threshold below which entries are discarded.
 TESSERACT_MIN_CONF: int = 0
 
+# Module-level engine cache to avoid re-initialising engines on every call.
+_engine_cache: dict[str, object] = {}
+
+
+def _get_or_init_engine(engine_name: str) -> object:
+    """Return a cached engine instance, initialising it on first use."""
+    if engine_name not in _engine_cache:
+        _engine_cache[engine_name] = init_ocr_engine(engine_name)
+    return _engine_cache[engine_name]
+
 
 # ---------------------------------------------------------------------------
 # Validation helpers
@@ -358,7 +368,7 @@ def recognize_with_fallback(
 
     for engine_name in engines:
         engines_tried.append(engine_name)
-        engine_obj = init_ocr_engine(engine_name)
+        engine_obj = _get_or_init_engine(engine_name)
         raw_results = recognize_text(image, engine_obj)
         aggregated = _aggregate_ocr_results(raw_results, engine_name)
         conf = float(aggregated["confidence"])

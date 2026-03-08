@@ -304,6 +304,12 @@ def detect_empty_regions(
 
     result: list[bool] = []
     for crop in crops:
+        try:
+            _validate_image(crop)
+        except ValueError:
+            # Invalid crop is treated as empty
+            result.append(True)
+            continue
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         variance = float(np.var(gray))
         result.append(variance < variance_threshold)

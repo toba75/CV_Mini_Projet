@@ -85,7 +85,7 @@ def run_full_evaluation(
         if pairs:
             cer = sum(compute_cer(p, g) for p, g in pairs) / len(pairs)
         else:
-            cer = 1.0
+            cer = 0.0
 
         per_image.append({
             "image": image_name,
