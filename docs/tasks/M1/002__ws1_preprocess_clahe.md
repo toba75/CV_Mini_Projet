@@ -1,6 +1,6 @@
 # Tâche — Implémenter le prétraitement d'image avec CLAHE
 
-Statut : TODO
+Statut : DONE
 Ordre : 002
 Workstream : WS1
 Milestone : M1
@@ -32,28 +32,28 @@ Dépendances :
 - Fonction `preprocess(path: str) -> np.ndarray` : orchestre load → resize → CLAHE et retourne l'image prétraitée.
 
 ## Critères d'acceptation
-- [ ] `load_image` charge correctement une image existante et lève les bonnes exceptions
-- [ ] `resize_image` redimensionne en conservant le ratio d'aspect
-- [ ] `resize_image` ne modifie pas une image déjà plus petite que `max_width`
-- [ ] `apply_clahe` retourne une image de mêmes dimensions que l'entrée
-- [ ] `apply_clahe` améliore effectivement le contraste (écart-type des pixels augmenté ou inchangé)
-- [ ] `preprocess` enchaîne correctement les 3 étapes
-- [ ] Toutes les fonctions lèvent `ValueError` sur une entrée None ou vide
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `load_image` charge correctement une image existante et lève les bonnes exceptions
+- [x] `resize_image` redimensionne en conservant le ratio d'aspect
+- [x] `resize_image` ne modifie pas une image déjà plus petite que `max_width`
+- [x] `apply_clahe` retourne une image de mêmes dimensions que l'entrée
+- [x] `apply_clahe` améliore effectivement le contraste (écart-type des pixels augmenté ou inchangé)
+- [x] `preprocess` enchaîne correctement les 3 étapes
+- [x] Toutes les fonctions lèvent `ValueError` sur une entrée None ou vide
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/002-preprocess-clahe` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/002-preprocess-clahe` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS1] #002 RED: tests prétraitement CLAHE`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS1] #002 GREEN: prétraitement CLAHE implémenté`.
+- [x] Branche `task/002-preprocess-clahe` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS1] #002 RED: tests prétraitement CLAHE`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS1] #002 GREEN: prétraitement CLAHE implémenté`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS1] #002 — Prétraitement CLAHE`.
