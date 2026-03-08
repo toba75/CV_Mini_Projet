@@ -13,6 +13,11 @@ import math
 import cv2
 import numpy as np
 
+# Minimum gap between two x-cut positions (pixels). §R2
+MIN_GAP_PX: int = 5
+# Minimum gap between two x-cut positions as a ratio of image width. §R2
+MIN_GAP_RATIO: float = 0.02
+
 
 def detect_vertical_lines(
     image: np.ndarray,
@@ -132,7 +137,7 @@ def split_spines(
     # Merge cuts that are within a minimum distance (avoid duplicate
     # detections from both edges of the same book boundary).
     # Minimum gap: 2% of image width or 5 pixels, whichever is larger.
-    min_gap = max(5, int(width * 0.02))
+    min_gap = max(MIN_GAP_PX, int(width * MIN_GAP_RATIO))
     x_cuts: list[int] = []
     for x in x_cuts_raw:
         if not x_cuts or (x - x_cuts[-1]) >= min_gap:

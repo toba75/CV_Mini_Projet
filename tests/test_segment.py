@@ -74,6 +74,17 @@ class TestDetectVerticalLines:
 
         assert isinstance(lines, list)
 
+    def test_does_not_modify_input(self):
+        """Nominal: input image is not modified in place. §R4"""
+        img = np.random.default_rng(42).integers(
+            0, 256, (200, 300, 3), dtype=np.uint8,
+        )
+        original = img.copy()
+
+        detect_vertical_lines(img)
+
+        np.testing.assert_array_equal(img, original)
+
 
 class TestSplitSpines:
     """Tests for split_spines function."""
