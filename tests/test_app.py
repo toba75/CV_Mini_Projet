@@ -412,9 +412,9 @@ class TestPrepareEditableDataframe:
         )
         assert len(df) == 2
         # Le premier livre est marqué comme modifié
-        assert df.iloc[0]["Modifié"] is True
+        assert bool(df.iloc[0]["Modifié"]) is True
         # Le deuxième livre n'est pas modifié
-        assert df.iloc[1]["Modifié"] is False
+        assert bool(df.iloc[1]["Modifié"]) is False
 
     def test_prepare_editable_dataframe_empty(self):
         from src.app import prepare_editable_dataframe

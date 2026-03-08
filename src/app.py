@@ -1,5 +1,6 @@
 """ShelfScan — Application Streamlit pour l'inventaire de bibliothèque."""
 
+import copy
 import logging
 import tempfile
 from pathlib import Path
@@ -53,6 +54,57 @@ def prepare_inventory_dataframe(result: dict) -> pd.DataFrame:
             "Auteur": book["author"],
             "ISBN": book["isbn"],
             "Confiance": book["confidence"],
+        }
+        for book in books
+    ]
+    return pd.DataFrame(rows)
+
+
+def apply_manual_corrections(result: dict, corrections: dict) -> dict:
+    """Applique les corrections manuelles au résultat du pipeline.
+
+    Args:
+        result: Résultat structuré du pipeline contenant une clé ``books``.
+        corrections: Dict de corrections ``{spine_id: {"title": ..., "author": ...}}``.
+
+    Returns:
+        Nouveau résultat avec les corrections appliquées.
+        Les livres corrigés portent le flag ``manually_corrected: True``.
+    """
+    corrected = copy.deepcopy(result)
+    spine_id_to_book = {book["spine_id"]: book for book in corrected["books"]}
+
+    for spine_id, fields in corrections.items():
+        if spine_id not in spine_id_to_book:
+            continue
+        book = spine_id_to_book[spine_id]
+        for key, value in fields.items():
+            book[key] = value
+        book["manually_corrected"] = True
+
+    return corrected
+
+
+def prepare_editable_dataframe(result: dict) -> pd.DataFrame:
+    """Prépare un DataFrame éditable avec colonne de statut de modification.
+
+    Args:
+        result: Résultat structuré du pipeline contenant une clé ``books``.
+
+    Returns:
+        DataFrame avec les colonnes Titre, Auteur, ISBN, Confiance, Modifié.
+
+    Raises:
+        KeyError: Si la clé ``books`` est absente du résultat.
+    """
+    books = result["books"]
+    rows = [
+        {
+            "Titre": book["title"],
+            "Auteur": book["author"],
+            "ISBN": book["isbn"],
+            "Confiance": book["confidence"],
+            "Modifié": book.get("manually_corrected", False),
         }
         for book in books
     ]
@@ -167,25 +219,70 @@ def _display_ocr_tab(result: dict) -> None:
 
 
 def _display_inventory_tab(result: dict, image_stem: str) -> None:
-    """Affiche l'onglet Inventaire avec tableau et export CSV.
+    """Affiche l'onglet Inventaire avec tableau éditable et export CSV.
 
     Args:
         result: Résultat structuré du pipeline.
         image_stem: Nom du fichier image sans extension (pour le nom CSV).
     """
-    df = prepare_inventory_dataframe(result)
+    # Initialiser les corrections manuelles en session state
+    if "manual_corrections" not in st.session_state:
+        st.session_state.manual_corrections = {}
+
+    # Appliquer les corrections existantes
+    corrected_result = apply_manual_corrections(
+        result, st.session_state.manual_corrections
+    )
+    df = prepare_editable_dataframe(corrected_result)
 
     st.subheader("Résultats de l'inventaire")
-    st.dataframe(df, use_container_width=True)
 
     if not df.empty:
-        csv_content = df.to_csv(index=False).encode("utf-8")
+        # Colonnes éditables : Titre, Auteur, ISBN
+        column_config = {
+            "Confiance": st.column_config.NumberColumn(
+                "Confiance", format="%.2f", disabled=True
+            ),
+            "Modifié": st.column_config.CheckboxColumn(
+                "Modifié", disabled=True
+            ),
+        }
+        edited_df = st.data_editor(
+            df,
+            column_config=column_config,
+            use_container_width=True,
+            num_rows="fixed",
+            key="inventory_editor",
+        )
+
+        # Détecter les modifications et mettre à jour les corrections
+        books = corrected_result["books"]
+        for idx, book in enumerate(books):
+            spine_id = book["spine_id"]
+            edited_row = edited_df.iloc[idx]
+            changes = {}
+            if edited_row["Titre"] != book["title"]:
+                changes["title"] = edited_row["Titre"]
+            if edited_row["Auteur"] != book["author"]:
+                changes["author"] = edited_row["Auteur"]
+            if edited_row["ISBN"] != book["isbn"]:
+                changes["isbn"] = edited_row["ISBN"]
+            if changes:
+                existing = st.session_state.manual_corrections.get(spine_id, {})
+                existing.update(changes)
+                st.session_state.manual_corrections[spine_id] = existing
+
+        # Export avec corrections appliquées
+        export_df = edited_df.drop(columns=["Modifié"])
+        csv_content = export_df.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="Exporter en CSV",
             data=csv_content,
             file_name=f"{image_stem}_inventaire.csv",
             mime="text/csv",
         )
+    else:
+        st.dataframe(df, use_container_width=True)
 
 
 def main():
