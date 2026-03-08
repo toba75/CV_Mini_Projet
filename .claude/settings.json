@@ -3,8 +3,8 @@
     "allow": [
       "Bash(git checkout *)",
       "Bash(.venv/Scripts/python.exe -m pytest*)",
-      "Bash(git add*)",
-      "Bash(git commit*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
       "Bash(.venv/Scripts/python.exe -m ruff*)",
       "Bash(grep*)",
       "Bash(git merge*)",
@@ -18,12 +18,25 @@
       "Bash(git diff*)",
       "Bash(git branch*)",
       "Bash(git status*)",
-      "Bash(cd*)",
-      "Bash(mkdir*)"
+      "Bash(cd *)",
+      "Bash(mkdir*)",
+      "Bash(git add * && git commit *)",
+      "Bash(git add * && git status*)",
+      "Bash(git commit * && git status*)",
+      "Bash(git commit * && git push*)",
+      "Bash(git checkout * && git pull*)",
+      "Bash(git checkout * && git merge*)",
+      "Bash(mkdir * && cd *)",
+      "Bash(cd * && git *)",
+      "Bash(cd * && ls*)",
+      "Bash(cd * && .venv/Scripts/python.exe *)",
+      "Bash(cd * && mkdir*)",
+      "Bash(cd * && gh *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\maxim\\python\\Computer_Vision\\CV_Mini_Projet\\data",
-      "c:\\Users\\maxim\\python\\Computer_Vision\\CV_Mini_Projet\\docs\\tasks"
+      "c:\\Users\\maxim\\python\\Computer_Vision\\CV_Mini_Projet\\docs\\tasks",
+      "C:\\Users\\maxim\\.claude\\projects\\c--Users-maxim-python-Computer-Vision-CV-Mini-Projet"
     ]
   }
 }
