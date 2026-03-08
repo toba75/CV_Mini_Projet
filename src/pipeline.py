@@ -6,8 +6,8 @@ import logging
 import time
 from pathlib import Path
 
-from src.detect_text import correct_orientation, detect_text_regions
-from src.ocr import recognize_text_unified
+from src.detect_text import correct_orientation, detect_text_regions, init_detector
+from src.ocr import init_ocr_engine, recognize_text, _aggregate_ocr_results
 from src.postprocess import identify_book, postprocess_spine
 from src.preprocess import preprocess
 from src.segment import segment
@@ -59,18 +59,23 @@ def run_pipeline(
     # Step 2: Segment spines
     spines = segment(preprocessed)
 
+    # Pre-initialise detector and OCR engine once (avoid per-spine overhead)
+    detector = init_detector()
+    ocr_engine_obj = init_ocr_engine(ocr_engine)
+
     books: list[dict] = []
 
     for idx, spine_crop in enumerate(spines, start=1):
         try:
             # Step 3: Detect text regions
-            text_regions = detect_text_regions(spine_crop)
+            text_regions = detect_text_regions(spine_crop, detector=detector)
 
             # Step 4: Correct orientation
             corrected = correct_orientation(spine_crop, text_regions)
 
             # Step 5: OCR
-            ocr_result = recognize_text_unified(corrected, engine=ocr_engine)
+            ocr_results = recognize_text(corrected, ocr_engine_obj)
+            ocr_result = _aggregate_ocr_results(ocr_results, ocr_engine)
             raw_text = ocr_result.get("text", "")
 
             # Step 6: Postprocess

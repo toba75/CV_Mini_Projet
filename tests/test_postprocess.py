@@ -418,6 +418,11 @@ class TestCleanText:
         result = clean_text("  hello  ")
         assert result == "hello"
 
+    def test_removes_pipe_characters(self) -> None:
+        """Pipe characters (common OCR artefact) are removed."""
+        result = clean_text("|Le Petit| Prince|")
+        assert result == "Le Petit Prince"
+
 
 # ---------------------------------------------------------------------------
 # merge_fragments

@@ -56,18 +56,24 @@ class TestRunPipeline:
 
     @patch("src.pipeline.identify_book")
     @patch("src.pipeline.postprocess_spine")
-    @patch("src.pipeline.recognize_text_unified")
+    @patch("src.pipeline._aggregate_ocr_results")
+    @patch("src.pipeline.recognize_text")
     @patch("src.pipeline.correct_orientation")
     @patch("src.pipeline.detect_text_regions")
+    @patch("src.pipeline.init_ocr_engine")
+    @patch("src.pipeline.init_detector")
     @patch("src.pipeline.segment")
     @patch("src.pipeline.preprocess")
     def test_returns_dict_with_expected_keys(
         self,
         mock_preprocess: MagicMock,
         mock_segment: MagicMock,
+        mock_init_detector: MagicMock,
+        mock_init_ocr: MagicMock,
         mock_detect: MagicMock,
         mock_correct: MagicMock,
         mock_recognize: MagicMock,
+        mock_aggregate: MagicMock,
         mock_postprocess: MagicMock,
         mock_identify: MagicMock,
         tmp_path: Path,
@@ -78,9 +84,12 @@ class TestRunPipeline:
 
         mock_preprocess.return_value = FAKE_IMAGE
         mock_segment.return_value = [FAKE_SPINE]
+        mock_init_detector.return_value = MagicMock()
+        mock_init_ocr.return_value = MagicMock()
         mock_detect.return_value = [{"bbox": [[0, 0], [50, 0], [50, 20], [0, 20]], "confidence": 0.9}]
         mock_correct.return_value = FAKE_SPINE
-        mock_recognize.return_value = {"text": "Le Petit Prince", "confidence": 0.9, "engine": "paddleocr"}
+        mock_recognize.return_value = [{"text": "Le Petit Prince", "confidence": 0.9}]
+        mock_aggregate.return_value = {"text": "Le Petit Prince", "confidence": 0.9, "engine": "paddleocr"}
         mock_postprocess.return_value = {
             "raw_text": "Le Petit Prince",
             "clean_text": "Le Petit Prince",

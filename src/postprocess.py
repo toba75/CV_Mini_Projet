@@ -59,6 +59,8 @@ def clean_text(raw_text: str) -> str:
         ch if unicodedata.category(ch) != "Cc" or ch in ("\n", "\t") else ""
         for ch in raw_text
     )
+    # Remove pipe characters (common OCR artefact on spine edges)
+    cleaned = cleaned.replace("|", "")
     # Normalize multiple spaces to single space
     cleaned = re.sub(r" {2,}", " ", cleaned)
     # Apply NFC normalization
