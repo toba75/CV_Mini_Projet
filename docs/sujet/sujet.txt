@@ -1,0 +1,21 @@
+Mini-Projets
+On m'a fait remonter que vous aviez des questions concernant les mini-projets. Pour rappel, voici une liste (non exhaustive) d'idées de projets en lien avec le cours :
+
+    Détection de zones de texte dans des images
+    Détection d'objets en temps réel
+    Détection de contours ou de formes
+    Reconnaissance d'émotions faciales (dataset simplifié)
+    Détection de défauts sur pièces industrielles
+
+Vous êtes libres de proposer vos propres sujets. Si vous souhaitez en discuter en amont de notre prochaine séance, n'hésitez pas à m'envoyer un mail.
+Il me semble toutefois que vos questions portaient davantage sur l'organisation et le déroulement de l'oral. Voici les informations principales :
+
+    Composition : groupes de 3 à 4 étudiants, 6 groupes maximum.
+    Format : présentation de 20 minutes (~10 diapositives) portant sur un concept vu en cours ou en découlant directement.
+    Objectif : réaliser une preuve de concept. Vous devez exposer une problématique, présenter la solution et les méthodes envisagées pour la résoudre, avec une partie démonstration.
+
+Livrables attendus :
+
+    Les diapositives de présentation
+    Le code de démonstration accompagné d'un README décrivant l'implémentation et la stack technique
+
