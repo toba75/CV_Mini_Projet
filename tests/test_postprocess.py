@@ -8,7 +8,10 @@ import requests
 
 from src.postprocess import (
     clean_text,
+    fuzzy_match_title,
     get_book_metadata,
+    identify_book,
+    identify_books,
     merge_fragments,
     postprocess_spine,
     search_book,
@@ -498,3 +501,97 @@ class TestPostprocessSpine:
         result = postprocess_spine(["LE PETIT PRINCE"])
         assert result["title"] == "LE PETIT PRINCE"
         assert result["author"] is None
+
+
+# ---------------------------------------------------------------------------
+# fuzzy_match_title
+# ---------------------------------------------------------------------------
+
+
+class TestFuzzyMatchTitle:
+    """Tests for fuzzy_match_title — matching OCR text to API candidates."""
+
+    def test_best_match_returned(self) -> None:
+        candidates = [
+            {"title": "Le Petit Prince", "author": "Saint-Exupéry", "isbn": "123", "provider": "openlibrary"},
+            {"title": "Le Grand Meaulnes", "author": "Alain-Fournier", "isbn": "456", "provider": "openlibrary"},
+        ]
+        result = fuzzy_match_title("Le Petit Prince", candidates)
+        assert result is not None
+        assert result["title"] == "Le Petit Prince"
+        assert "match_score" in result
+        assert result["match_score"] >= 60.0
+
+    def test_returns_none_when_below_threshold(self) -> None:
+        candidates = [
+            {"title": "Completely Different Book", "author": "Author", "isbn": "789", "provider": "openlibrary"},
+        ]
+        result = fuzzy_match_title("Le Petit Prince", candidates, threshold=95.0)
+        assert result is None
+
+    def test_empty_candidates_returns_none(self) -> None:
+        result = fuzzy_match_title("Le Petit Prince", [])
+        assert result is None
+
+    def test_empty_text_returns_none(self) -> None:
+        candidates = [
+            {"title": "Le Petit Prince", "author": "Saint-Exupéry", "isbn": "123", "provider": "openlibrary"},
+        ]
+        result = fuzzy_match_title("", candidates)
+        assert result is None
+
+
+# ---------------------------------------------------------------------------
+# identify_book
+# ---------------------------------------------------------------------------
+
+
+class TestIdentifyBook:
+    """Tests for identify_book — orchestration search_book + fuzzy_match."""
+
+    @patch("src.postprocess.search_book")
+    def test_orchestration_returns_enriched_dict(self, mock_search: MagicMock) -> None:
+        mock_search.return_value = [
+            {"title": "Le Petit Prince", "author": "Saint-Exupéry", "isbn": "9782070612758", "provider": "openlibrary"},
+        ]
+        result = identify_book("Le Petit Prince")
+        assert result is not None
+        assert "title" in result
+        assert "author" in result
+        assert "isbn" in result
+        assert "confidence" in result
+        assert "provider" in result
+        assert 0.0 <= result["confidence"] <= 1.0
+        mock_search.assert_called_once()
+
+    @patch("src.postprocess.search_book")
+    def test_returns_none_when_no_results(self, mock_search: MagicMock) -> None:
+        mock_search.return_value = []
+        result = identify_book("xyznonexistent")
+        assert result is None
+
+    def test_returns_none_for_empty_text(self) -> None:
+        result = identify_book("")
+        assert result is None
+
+
+# ---------------------------------------------------------------------------
+# identify_books
+# ---------------------------------------------------------------------------
+
+
+class TestIdentifyBooks:
+    """Tests for identify_books — batch identification."""
+
+    @patch("src.postprocess.search_book")
+    def test_processes_list_correctly(self, mock_search: MagicMock) -> None:
+        mock_search.return_value = [
+            {"title": "Le Petit Prince", "author": "Saint-Exupéry", "isbn": "123", "provider": "openlibrary"},
+        ]
+        spine_results = [
+            {"raw_text": "Le Petit Prince", "clean_text": "Le Petit Prince", "title": "Le Petit Prince", "author": None},
+            {"raw_text": "Les Misérables", "clean_text": "Les Misérables", "title": "Les Misérables", "author": None},
+        ]
+        results = identify_books(spine_results)
+        assert isinstance(results, list)
+        assert len(results) == 2
