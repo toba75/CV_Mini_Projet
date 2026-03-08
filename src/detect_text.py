@@ -84,3 +84,78 @@ def detect_text_regions(
                 regions.append({"bbox": points, "confidence": confidence})
 
     return regions
+
+
+def group_text_lines(
+    regions: list[dict], line_threshold: float = 0.5
+) -> list[list[dict]]:
+    """Group text regions into logical lines based on vertical proximity.
+
+    Regions whose vertical centers are within *line_threshold* times the
+    average region height of each other are placed into the same group.
+
+    Args:
+        regions: List of dicts with key ``bbox`` (4-point polygon).
+        line_threshold: Multiplier of average height used as proximity
+            threshold for grouping.
+
+    Returns:
+        List of groups, where each group is a list of region dicts.
+    """
+    if not regions:
+        return []
+
+    def _vertical_center(region: dict) -> float:
+        ys = [pt[1] for pt in region["bbox"]]
+        return (min(ys) + max(ys)) / 2.0
+
+    def _height(region: dict) -> float:
+        ys = [pt[1] for pt in region["bbox"]]
+        return max(ys) - min(ys)
+
+    avg_height = sum(_height(r) for r in regions) / len(regions)
+    threshold = line_threshold * avg_height if avg_height > 0 else 1.0
+
+    # Sort by vertical center
+    sorted_regions = sorted(regions, key=_vertical_center)
+
+    groups: list[list[dict]] = [[sorted_regions[0]]]
+    for region in sorted_regions[1:]:
+        last_center = _vertical_center(groups[-1][-1])
+        curr_center = _vertical_center(region)
+        if abs(curr_center - last_center) <= threshold:
+            groups[-1].append(region)
+        else:
+            groups.append([region])
+
+    return groups
+
+
+def detect_text_on_spines(
+    crops: list[np.ndarray], engine: str = "paddleocr"
+) -> list[list[dict]]:
+    """Apply text detection on a batch of spine crops.
+
+    Args:
+        crops: List of BGR images (spine crops).
+        engine: Detection engine name (default ``"paddleocr"``).
+
+    Returns:
+        List of detection results, one list of region dicts per crop.
+
+    Raises:
+        ValueError: If *crops* is None.
+    """
+    if crops is None:
+        raise ValueError("crops cannot be None.")
+
+    if len(crops) == 0:
+        return []
+
+    detector = init_detector(engine)
+    results: list[list[dict]] = []
+    for crop in crops:
+        regions = detect_text_regions(crop, detector=detector)
+        results.append(regions)
+
+    return results
