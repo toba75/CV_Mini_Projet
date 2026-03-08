@@ -1,6 +1,6 @@
 # Tâche — Tester la détection de texte avec CRAFT ou PaddleOCR
 
-Statut : TODO
+Statut : DONE
 Ordre : 004
 Workstream : WS2
 Milestone : M1
@@ -32,27 +32,27 @@ Implémenter `src/detect_text.py` avec une fonction de détection de zones de te
 - Tester sur au moins 2 images : une tranche avec texte horizontal, une avec texte vertical.
 
 ## Critères d'acceptation
-- [ ] `init_detector` retourne un objet detector fonctionnel sans erreur
-- [ ] `detect_text_regions` retourne une liste (éventuellement vide) de dictionnaires avec clés `bbox` et `confidence`
-- [ ] Chaque `bbox` contient 4 points (polygone) avec des coordonnées numériques valides
-- [ ] La confiance est un float entre 0 et 1
-- [ ] Sur une image contenant du texte lisible, au moins une région est détectée
-- [ ] Validation des entrées : `ValueError` sur image None ou vide
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords (image sans texte, image vide)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `init_detector` retourne un objet detector fonctionnel sans erreur
+- [x] `detect_text_regions` retourne une liste (éventuellement vide) de dictionnaires avec clés `bbox` et `confidence`
+- [x] Chaque `bbox` contient 4 points (polygone) avec des coordonnées numériques valides
+- [x] La confiance est un float entre 0 et 1
+- [x] Sur une image contenant du texte lisible, au moins une région est détectée
+- [x] Validation des entrées : `ValueError` sur image None ou vide
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords (image sans texte, image vide)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/004-text-detection-test` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/004-text-detection-test` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS2] #004 RED: tests détection de texte`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] Branche `task/004-text-detection-test` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS2] #004 RED: tests détection de texte`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
 - [ ] **Commit GREEN** : `[WS2] #004 GREEN: détection de texte PaddleOCR/CRAFT fonctionnelle`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS2] #004 — Détection de texte`.
