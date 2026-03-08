@@ -1,16 +1,20 @@
 """Tests for OCR module — TDD RED phase for task #005."""
 
+import logging
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 
 from src.ocr import (
+    DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD,
     compare_engines,
     init_ocr_engine,
     recognize_batch,
+    recognize_batch_with_fallback,
     recognize_text,
     recognize_text_unified,
+    recognize_with_fallback,
 )
 
 # ---------------------------------------------------------------------------
@@ -356,3 +360,221 @@ class TestRecognizeBatch:
         crops = [_make_image(), _make_image(), _make_image()]
         recognize_batch(crops, engine="paddleocr")
         mock_init.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD
+# ---------------------------------------------------------------------------
+
+
+class TestDefaultFallbackConfidenceThreshold:
+    """Tests for the DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD constant."""
+
+    def test_is_float(self) -> None:
+        assert isinstance(DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD, float)
+
+    def test_value(self) -> None:
+        assert DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD == pytest.approx(0.3)
+
+
+# ---------------------------------------------------------------------------
+# recognize_with_fallback
+# ---------------------------------------------------------------------------
+
+
+class TestRecognizeWithFallback:
+    """Tests for recognize_with_fallback."""
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_first_engine_above_threshold_returns_immediately(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        """When the first engine gives high confidence, no fallback needed."""
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = [{"text": "hello", "confidence": 0.9}]
+        image = _make_image()
+        result = recognize_with_fallback(image, ["paddleocr", "tesseract"])
+        assert result["engine_used"] == "paddleocr"
+        assert result["engines_tried"] == ["paddleocr"]
+        assert result["text"] == "hello"
+        assert result["confidence"] == pytest.approx(0.9)
+        # init_ocr_engine called only once (no fallback)
+        mock_init.assert_called_once_with("paddleocr")
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_fallback_to_second_engine(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        """When the first engine gives low confidence, try second."""
+        mock_init.return_value = MagicMock()
+        # First call: low confidence; second call: high confidence
+        mock_recognize.side_effect = [
+            [{"text": "lo", "confidence": 0.1}],
+            [{"text": "hello world", "confidence": 0.85}],
+        ]
+        image = _make_image()
+        result = recognize_with_fallback(
+            image, ["paddleocr", "tesseract"], confidence_threshold=0.3
+        )
+        assert result["engine_used"] == "tesseract"
+        assert result["engines_tried"] == ["paddleocr", "tesseract"]
+        assert result["text"] == "hello world"
+        assert result["confidence"] == pytest.approx(0.85)
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_all_below_threshold_returns_best(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        """When all engines are below threshold, return the best result."""
+        mock_init.return_value = MagicMock()
+        mock_recognize.side_effect = [
+            [{"text": "a", "confidence": 0.1}],
+            [{"text": "ab", "confidence": 0.25}],
+            [{"text": "abc", "confidence": 0.2}],
+        ]
+        image = _make_image()
+        result = recognize_with_fallback(
+            image,
+            ["paddleocr", "trocr", "tesseract"],
+            confidence_threshold=0.5,
+        )
+        # Best confidence is 0.25 from trocr
+        assert result["engine_used"] == "trocr"
+        assert result["engines_tried"] == ["paddleocr", "trocr", "tesseract"]
+        assert result["text"] == "ab"
+        assert result["confidence"] == pytest.approx(0.25)
+
+    def test_empty_engines_raises(self) -> None:
+        """Empty engines list must raise ValueError."""
+        image = _make_image()
+        with pytest.raises(ValueError, match="engines"):
+            recognize_with_fallback(image, [])
+
+    def test_unsupported_engine_raises(self) -> None:
+        """Unsupported engine name must raise ValueError."""
+        image = _make_image()
+        with pytest.raises(ValueError, match="not_an_engine"):
+            recognize_with_fallback(image, ["not_an_engine"])
+
+    def test_none_image_raises(self) -> None:
+        with pytest.raises(ValueError, match="image"):
+            recognize_with_fallback(None, ["paddleocr"])
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_uses_default_threshold(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        """Default threshold should be DEFAULT_FALLBACK_CONFIDENCE_THRESHOLD."""
+        mock_init.return_value = MagicMock()
+        # Confidence 0.25 < default threshold 0.3 => fallback
+        mock_recognize.side_effect = [
+            [{"text": "x", "confidence": 0.25}],
+            [{"text": "y", "confidence": 0.9}],
+        ]
+        image = _make_image()
+        result = recognize_with_fallback(image, ["paddleocr", "tesseract"])
+        assert result["engine_used"] == "tesseract"
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_logging_engine_used(
+        self, mock_init: MagicMock, mock_recognize: MagicMock, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """The engine used should be logged."""
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = [{"text": "ok", "confidence": 0.9}]
+        image = _make_image()
+        with caplog.at_level(logging.INFO, logger="src.ocr"):
+            recognize_with_fallback(image, ["paddleocr"])
+        assert any("paddleocr" in msg.lower() for msg in caplog.messages)
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_empty_ocr_result_treated_as_zero_confidence(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        """Engine returning no results should be treated as 0 confidence."""
+        mock_init.return_value = MagicMock()
+        mock_recognize.side_effect = [
+            [],  # No results from first engine
+            [{"text": "found", "confidence": 0.8}],
+        ]
+        image = _make_image()
+        result = recognize_with_fallback(image, ["paddleocr", "tesseract"])
+        assert result["engine_used"] == "tesseract"
+        assert result["text"] == "found"
+
+    @patch("src.ocr.recognize_text")
+    @patch("src.ocr.init_ocr_engine")
+    def test_single_engine_returns_result(
+        self, mock_init: MagicMock, mock_recognize: MagicMock
+    ) -> None:
+        """Single engine should return its result regardless of confidence."""
+        mock_init.return_value = MagicMock()
+        mock_recognize.return_value = [{"text": "low", "confidence": 0.1}]
+        image = _make_image()
+        result = recognize_with_fallback(image, ["paddleocr"])
+        assert result["engine_used"] == "paddleocr"
+        assert result["engines_tried"] == ["paddleocr"]
+
+
+# ---------------------------------------------------------------------------
+# recognize_batch_with_fallback
+# ---------------------------------------------------------------------------
+
+
+class TestRecognizeBatchWithFallback:
+    """Tests for recognize_batch_with_fallback."""
+
+    @patch("src.ocr.recognize_with_fallback")
+    def test_returns_list_of_results(
+        self, mock_fallback: MagicMock
+    ) -> None:
+        mock_fallback.return_value = {
+            "text": "ok",
+            "confidence": 0.9,
+            "engine_used": "paddleocr",
+            "engines_tried": ["paddleocr"],
+        }
+        crops = [_make_image(), _make_image()]
+        results = recognize_batch_with_fallback(crops, ["paddleocr", "tesseract"])
+        assert isinstance(results, list)
+        assert len(results) == 2
+
+    @patch("src.ocr.recognize_with_fallback")
+    def test_empty_crops_returns_empty(
+        self, mock_fallback: MagicMock
+    ) -> None:
+        results = recognize_batch_with_fallback([], ["paddleocr"])
+        assert results == []
+        mock_fallback.assert_not_called()
+
+    def test_empty_engines_raises(self) -> None:
+        with pytest.raises(ValueError, match="engines"):
+            recognize_batch_with_fallback([_make_image()], [])
+
+    def test_unsupported_engine_raises(self) -> None:
+        with pytest.raises(ValueError, match="bad_engine"):
+            recognize_batch_with_fallback([_make_image()], ["bad_engine"])
+
+    @patch("src.ocr.recognize_with_fallback")
+    def test_passes_threshold(
+        self, mock_fallback: MagicMock
+    ) -> None:
+        mock_fallback.return_value = {
+            "text": "x",
+            "confidence": 0.5,
+            "engine_used": "paddleocr",
+            "engines_tried": ["paddleocr"],
+        }
+        crops = [_make_image()]
+        recognize_batch_with_fallback(
+            crops, ["paddleocr"], confidence_threshold=0.7
+        )
+        mock_fallback.assert_called_once()
+        call_kwargs = mock_fallback.call_args.kwargs
+        assert call_kwargs["confidence_threshold"] == pytest.approx(0.7)

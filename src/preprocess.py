@@ -81,7 +81,7 @@ def resize_image(image: np.ndarray, max_width: int = 1920) -> np.ndarray:
 def apply_clahe(
     image: np.ndarray,
     clip_limit: float = 2.0,
-    tile_grid_size: tuple = (8, 8),
+    tile_grid_size: tuple[int, int] = (8, 8),
 ) -> np.ndarray:
     """Apply CLAHE on the luminance channel of a BGR image.
 
@@ -119,6 +119,65 @@ def apply_clahe(
     lab_enhanced = cv2.merge([l_enhanced, a_channel, b_channel])
 
     # LAB → BGR conversion
+    result = cv2.cvtColor(lab_enhanced, cv2.COLOR_LAB2BGR)
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Sharpening kernel for small-text enhancement (§R2 — named constant)
+# ---------------------------------------------------------------------------
+SHARPEN_KERNEL: np.ndarray = np.array(
+    [[0, -1, 0], [-1, 5, -1], [0, -1, 0]], dtype=np.float32,
+)
+
+# CLAHE parameters for aggressive contrast enhancement
+ENHANCE_CLAHE_CLIP_LIMIT: float = 4.0
+ENHANCE_CLAHE_TILE_SIZE: tuple[int, int] = (4, 4)
+
+
+def enhance_for_difficult_text(
+    image: np.ndarray,
+    sharpen_kernel: np.ndarray = SHARPEN_KERNEL,
+    clip_limit: float = ENHANCE_CLAHE_CLIP_LIMIT,
+    tile_grid_size: tuple[int, int] = ENHANCE_CLAHE_TILE_SIZE,
+) -> np.ndarray:
+    """Enhance an image for difficult text detection/recognition.
+
+    Applies sharpening (for small text) and aggressive CLAHE contrast
+    enhancement (for low-contrast text) on the L channel in LAB space.
+
+    Args:
+        image: Input BGR image (uint8).
+        sharpen_kernel: Convolution kernel for sharpening.
+        clip_limit: CLAHE clip limit (higher = more contrast).
+        tile_grid_size: CLAHE tile grid size (smaller = more local).
+
+    Returns:
+        Enhanced BGR image (uint8), same dimensions as input.
+
+    Raises:
+        ValueError: If *image* is None, empty, not 3-dimensional,
+            or not uint8.
+    """
+    validate_image(image)
+
+    # Work on a copy — never modify the input in place (§R4)
+    img = image.copy()
+
+    # Step 1: Sharpening via convolution (helps small/blurry text)
+    img = cv2.filter2D(img, -1, sharpen_kernel)
+
+    # Step 2: Aggressive CLAHE on L channel (helps low-contrast text)
+    lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    l_channel, a_channel, b_channel = cv2.split(lab)
+
+    clahe = cv2.createCLAHE(
+        clipLimit=clip_limit,
+        tileGridSize=tile_grid_size,
+    )
+    l_enhanced = clahe.apply(l_channel)
+
+    lab_enhanced = cv2.merge([l_enhanced, a_channel, b_channel])
     result = cv2.cvtColor(lab_enhanced, cv2.COLOR_LAB2BGR)
     return result
 

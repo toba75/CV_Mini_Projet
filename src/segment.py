@@ -19,6 +19,12 @@ from src import validate_image
 MIN_GAP_PX: int = 5
 # Minimum gap between two x-cut positions as a ratio of image width. §R2
 MIN_GAP_RATIO: float = 0.02
+# Default variance threshold for empty region detection. §R2
+DEFAULT_VARIANCE_THRESHOLD: float = 50.0
+# Minimum aspect ratio (height/width) for a crop to be considered a book spine. §R2
+MIN_BOOK_ASPECT_RATIO: float = 2.0
+# Default minimum width ratio for thin spine merging. §R2
+DEFAULT_MIN_WIDTH_RATIO: float = 0.02
 
 
 # Keep module-level alias so that internal callers continue to work.
@@ -272,6 +278,123 @@ def crop_spines(
     return crops
 
 
+def detect_empty_regions(
+    image: np.ndarray,
+    crops: list[np.ndarray],
+    variance_threshold: float = DEFAULT_VARIANCE_THRESHOLD,
+) -> list[bool]:
+    """Detect crops that are empty (low texture variance).
+
+    Args:
+        image: Source BGR image (uint8), used for validation.
+        crops: List of cropped BGR images to evaluate.
+        variance_threshold: Maximum variance (on grayscale) below which
+            a crop is considered empty (default 50.0).
+
+    Returns:
+        List of booleans, True if the corresponding crop is empty.
+
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
+    """
+    _validate_image(image)
+
+    if not crops:
+        return []
+
+    result: list[bool] = []
+    for crop in crops:
+        try:
+            _validate_image(crop)
+        except ValueError:
+            # Invalid crop is treated as empty
+            result.append(True)
+            continue
+        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        variance = float(np.var(gray))
+        result.append(variance < variance_threshold)
+
+    return result
+
+
+def classify_spine(crop: np.ndarray) -> dict:
+    """Classify a crop as book or non-book based on aspect ratio and texture.
+
+    Args:
+        crop: BGR image crop (uint8).
+
+    Returns:
+        Dictionary with keys ``is_book`` (bool) and ``reason`` (str).
+
+    Raises:
+        ValueError: If *crop* is None, empty, not 3D, or not uint8.
+    """
+    _validate_image(crop)
+
+    h, w = crop.shape[:2]
+    aspect_ratio = h / w
+
+    gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+    variance = float(np.var(gray))
+
+    if variance < DEFAULT_VARIANCE_THRESHOLD:
+        return {"is_book": False, "reason": "low texture variance"}
+
+    if aspect_ratio < MIN_BOOK_ASPECT_RATIO:
+        return {"is_book": False, "reason": "aspect ratio too low"}
+
+    return {"is_book": True, "reason": "book spine"}
+
+
+def merge_thin_spines(
+    crops: list[np.ndarray],
+    min_width_ratio: float = DEFAULT_MIN_WIDTH_RATIO,
+) -> list[np.ndarray]:
+    """Merge adjacent thin crops into wider ones.
+
+    Args:
+        crops: List of cropped BGR images, ordered left to right.
+        min_width_ratio: Minimum width as a ratio of the total width
+            of all crops. Crops thinner than this are merged with
+            their neighbours.
+
+    Returns:
+        List of merged BGR images.
+    """
+    if not crops:
+        return []
+
+    total_width = sum(c.shape[1] for c in crops)
+    min_width = max(1, int(total_width * min_width_ratio))
+
+    merged: list[np.ndarray] = []
+    buffer: list[np.ndarray] = []
+
+    for crop in crops:
+        is_thin = crop.shape[1] < min_width
+        if is_thin:
+            buffer.append(crop)
+        else:
+            # Flush buffer before adding non-thin crop
+            if buffer:
+                merged_crop = np.concatenate(buffer, axis=1)
+                merged.append(merged_crop)
+                buffer = []
+            merged.append(crop)
+
+    # Flush remaining buffer
+    if buffer:
+        if merged:
+            # Merge remaining thin crops with the last merged crop
+            last = merged.pop()
+            combined = [last] + buffer
+            merged.append(np.concatenate(combined, axis=1))
+        else:
+            merged.append(np.concatenate(buffer, axis=1))
+
+    return merged
+
+
 def segment(image: np.ndarray) -> list[np.ndarray]:
     """Segment a shelf image into individual book spine crops.
 
@@ -296,3 +419,46 @@ def segment(image: np.ndarray) -> list[np.ndarray]:
         return [image.copy()]
 
     return crops
+
+
+def segment_robust(image: np.ndarray) -> list[dict]:
+    """Robust segmentation with edge-case handling.
+
+    Orchestrates the full pipeline: detect lines, crop spines, merge thin
+    spines, detect empty regions, and classify each crop as book or
+    non-book.
+
+    Args:
+        image: Input BGR image (uint8).
+
+    Returns:
+        List of dicts, each with keys ``crop`` (np.ndarray) and
+        ``is_book`` (bool).
+
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
+    """
+    _validate_image(image)
+
+    lines = detect_vertical_lines(image)
+    crops = split_spines(image, lines)
+
+    if not crops:
+        crops = [image.copy()]
+
+    # Merge thin spines
+    crops = merge_thin_spines(crops)
+
+    # Detect empty regions
+    empty_flags = detect_empty_regions(image, crops)
+
+    # Classify each crop
+    results: list[dict] = []
+    for i, crop in enumerate(crops):
+        if empty_flags[i]:
+            results.append({"crop": crop, "is_book": False})
+        else:
+            classification = classify_spine(crop)
+            results.append({"crop": crop, "is_book": classification["is_book"]})
+
+    return results
