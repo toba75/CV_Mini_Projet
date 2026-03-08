@@ -139,6 +139,143 @@ def apply_clahe(
     return result
 
 
+def _validate_image(image: np.ndarray | None) -> None:
+    """Raise ``ValueError`` if *image* is None, empty, or malformed."""
+    if image is None:
+        raise ValueError("Input image must not be None.")
+    if not isinstance(image, np.ndarray) or image.size == 0:
+        raise ValueError("Input image must be a non-empty numpy array.")
+    if image.ndim != 3:
+        raise ValueError(
+            f"image must have 3 dimensions (H, W, C), got ndim={image.ndim}"
+        )
+    if image.dtype != np.uint8:
+        raise ValueError(f"image dtype must be uint8, got {image.dtype}")
+
+
+def _order_corners(pts: np.ndarray) -> np.ndarray:
+    """Order four points as: top-left, top-right, bottom-right, bottom-left.
+
+    Args:
+        pts: Array of shape (4, 2).
+
+    Returns:
+        Ordered array of shape (4, 2) with dtype float32.
+    """
+    pts = pts.reshape(4, 2).astype(np.float32)
+    # Sum and diff discriminate corners:
+    #   top-left has smallest sum, bottom-right has largest sum
+    #   top-right has smallest diff, bottom-left has largest diff
+    s = pts.sum(axis=1)
+    d = np.diff(pts, axis=1).ravel()
+    ordered = np.array(
+        [pts[np.argmin(s)], pts[np.argmin(d)], pts[np.argmax(s)], pts[np.argmax(d)]],
+        dtype=np.float32,
+    )
+    return ordered
+
+
+def detect_shelf_contour(image: np.ndarray) -> np.ndarray | None:
+    """Detect the dominant quadrilateral contour in a shelf image.
+
+    Uses Canny edge detection followed by ``cv2.findContours`` and
+    ``cv2.approxPolyDP`` to find the largest 4-sided contour.
+
+    Args:
+        image: Input BGR image (uint8).
+
+    Returns:
+        Ordered corners as an array of shape (4, 2) with dtype float32
+        (top-left, top-right, bottom-right, bottom-left), or ``None``
+        if no suitable quadrilateral is found.
+
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
+    """
+    _validate_image(image)
+
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    edges = cv2.Canny(blurred, 50, 150)
+
+    # Dilate to close gaps in edge contours
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    edges = cv2.dilate(edges, kernel, iterations=1)
+
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    if not contours:
+        return None
+
+    # Sort contours by area (descending) and try to approximate to a quad
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+    for cnt in contours:
+        peri = cv2.arcLength(cnt, closed=True)
+        approx = cv2.approxPolyDP(cnt, 0.02 * peri, closed=True)
+        if len(approx) == 4 and cv2.contourArea(approx) > 1000:
+            return _order_corners(approx.reshape(4, 2))
+
+    return None
+
+
+def correct_perspective(
+    image: np.ndarray,
+    corners: np.ndarray | None = None,
+) -> np.ndarray:
+    """Apply a perspective correction to straighten a shelf image.
+
+    If *corners* is ``None``, attempts automatic detection via
+    :func:`detect_shelf_contour`.  If no contour is found, returns
+    a copy of the original image without raising an error.
+
+    Args:
+        image: Input BGR image (uint8).
+        corners: Optional array of shape (4, 2) with the source
+            quadrilateral corners (top-left, top-right, bottom-right,
+            bottom-left).
+
+    Returns:
+        The perspective-corrected BGR image, or a copy of the original
+        image if no correction could be applied.
+
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
+    """
+    _validate_image(image)
+
+    if corners is None:
+        corners = detect_shelf_contour(image)
+        if corners is None:
+            return image.copy()
+
+    corners = corners.astype(np.float32).reshape(4, 2)
+
+    # Compute destination rectangle from the bounding box of the corners
+    tl, tr, br, bl = corners
+
+    width_top = np.linalg.norm(tr - tl)
+    width_bot = np.linalg.norm(br - bl)
+    max_w = int(max(width_top, width_bot))
+
+    height_left = np.linalg.norm(bl - tl)
+    height_right = np.linalg.norm(br - tr)
+    max_h = int(max(height_left, height_right))
+
+    # Safeguard against degenerate sizes
+    max_w = max(max_w, 1)
+    max_h = max(max_h, 1)
+
+    dst = np.array(
+        [[0, 0], [max_w - 1, 0], [max_w - 1, max_h - 1], [0, max_h - 1]],
+        dtype=np.float32,
+    )
+
+    M = cv2.getPerspectiveTransform(corners, dst)
+    result = cv2.warpPerspective(image, M, (max_w, max_h))
+    return result
+
+
 def preprocess(path: str) -> np.ndarray:
     """Run the full preprocessing pipeline on an image file.
 

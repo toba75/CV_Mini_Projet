@@ -1,6 +1,6 @@
 # Tâche — Implémenter la correction de perspective automatique par homographie
 
-Statut : TODO
+Statut : DONE
 Ordre : 009
 Workstream : WS1
 Milestone : M2
@@ -34,26 +34,26 @@ Ajouter dans `src/preprocess.py` une fonction de correction de perspective autom
 - Intégration dans le flux de prétraitement existant (appel optionnel avant ou après CLAHE).
 
 ## Critères d'acceptation
-- [ ] `detect_shelf_contour` retourne un array de 4 points ordonnés (top-left, top-right, bottom-right, bottom-left) ou `None`
-- [ ] `correct_perspective` redresse une image déformée (vérifiable sur image synthétique avec transformation connue)
-- [ ] `correct_perspective` retourne l'image originale si aucun contour n'est détecté (pas d'exception)
-- [ ] La sortie a des dimensions raisonnables (pas d'image dégénérée 0×0)
-- [ ] Validation des entrées : `ValueError` sur image None ou vide
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords (image sans contour, image déjà frontale)
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] `detect_shelf_contour` retourne un array de 4 points ordonnés (top-left, top-right, bottom-right, bottom-left) ou `None`
+- [x] `correct_perspective` redresse une image déformée (vérifiable sur image synthétique avec transformation connue)
+- [x] `correct_perspective` retourne l'image originale si aucun contour n'est détecté (pas d'exception)
+- [x] La sortie a des dimensions raisonnables (pas d'image dégénérée 0×0)
+- [x] Validation des entrées : `ValueError` sur image None ou vide
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords (image sans contour, image déjà frontale)
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/009-perspective-correction` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/009-perspective-correction` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS1] #009 RED: tests correction de perspective homographie`.
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS1] #009 GREEN: correction de perspective automatique implémentée`.
+- [x] Branche `task/009-perspective-correction` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS1] #009 RED: tests correction de perspective homographie`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS1] #009 GREEN: correction de perspective automatique implémentée`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS1] #009 — Correction de perspective`.
