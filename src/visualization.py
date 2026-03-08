@@ -169,3 +169,19 @@ def draw_spine_boxes(
             )
 
     return canvas
+
+
+def bgr_to_rgb(image: np.ndarray) -> np.ndarray:
+    """Convert a BGR image to RGB.
+
+    Args:
+        image: Input BGR image (uint8).
+
+    Returns:
+        RGB uint8 image (copy).
+
+    Raises:
+        ValueError: If *image* is None, empty, not 3D, or not uint8.
+    """
+    validate_image(image)
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
