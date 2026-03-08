@@ -1,6 +1,6 @@
 # Tâche — Initialiser la structure du projet et installer les dépendances
 
-Statut : TODO
+Statut : DONE
 Ordre : 001
 Workstream : WS1
 Milestone : M1
@@ -51,27 +51,27 @@ Créer l'arborescence du projet conforme au plan et installer toutes les dépend
 - Chaque fichier `.py` dans `src/` contient un placeholder minimal (docstring de module).
 
 ## Critères d'acceptation
-- [ ] L'arborescence `src/`, `data/raw/`, `data/ground_truth/`, `outputs/`, `notebooks/`, `tests/` existe
-- [ ] Tous les fichiers `.py` listés dans le plan sont présents dans `src/`
-- [ ] `src/__init__.py` et `tests/__init__.py` existent
-- [ ] `requirements.txt` est présent et liste toutes les dépendances de la stack technique
-- [ ] `pip install -r requirements.txt` s'exécute sans erreur
-- [ ] Les modules sont importables : `from src import preprocess, segment, detect_text, ocr, postprocess, pipeline`
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords
-- [ ] Suite de tests verte après implémentation
-- [ ] `ruff check` passe sans erreur
+- [x] L'arborescence `src/`, `data/raw/`, `data/ground_truth/`, `outputs/`, `notebooks/`, `tests/` existe
+- [x] Tous les fichiers `.py` listés dans le plan sont présents dans `src/`
+- [x] `src/__init__.py` et `tests/__init__.py` existent
+- [x] `requirements.txt` est présent et liste toutes les dépendances de la stack technique
+- [x] `pip install -r requirements.txt` s'exécute sans erreur
+- [x] Les modules sont importables : `from src import preprocess, segment, detect_text, ocr, postprocess, pipeline`
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords
+- [x] Suite de tests verte après implémentation
+- [x] `ruff check` passe sans erreur
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/001-project-structure-setup` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/001-project-structure-setup` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS1] #001 RED: <résumé>` (fichiers de tests uniquement).
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS1] #001 GREEN: <résumé>`.
-- [ ] **Pull Request ouverte** vers `main` : `[WS1] #001 — Initialiser la structure du projet`.
+- [x] Branche `task/001-project-structure-setup` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS1] #001 RED: <résumé>` (fichiers de tests uniquement).
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS1] #001 GREEN: <résumé>`.
+- [x] **Pull Request ouverte** vers `main` : `[WS1] #001 — Initialiser la structure du projet`.
