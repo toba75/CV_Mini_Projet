@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/Scripts/pip install --upgrade pip)",
+      "Bash(.venv/Scripts/pip install -r requirements.txt)",
+      "Bash(.venv/Scripts/python.exe -m pip install --upgrade pip)",
+      "Bash(.venv/Scripts/python.exe -m pip install -r requirements.txt)",
+      "Bash(.venv/Scripts/python.exe -c \"import cv2, PIL, paddle, paddleocr, torch, torchvision, transformers, streamlit, pandas, rapidfuzz, requests, editdistance; print\\(''All imports OK''\\)\")",
+      "Bash(.venv/Scripts/python.exe -m pip install \"torch>=2.1,<2.10\" \"torchvision>=0.16,<0.25\")",
+      "Bash(.venv/Scripts/python.exe -m pip install \"torch==2.6.0\" \"torchvision==0.21.0\")",
+      "Bash(.venv/Scripts/python.exe -m pip install torch==2.10.0 torchvision==0.25.0 --index-url https://download.pytorch.org/whl/cu126)",
+      "Bash(.venv/Scripts/python.exe -c \"import torch; print\\(f''torch {torch.__version__}, CUDA available: {torch.cuda.is_available\\(\\)}''\\)\")",
+      "Bash(.venv/Scripts/python.exe -m pip install \"albumentations<2\")",
+      "Bash(.venv/Scripts/python.exe -c \"import cv2, PIL, paddle, paddleocr, torch, torchvision, transformers, streamlit, pandas, rapidfuzz, requests, editdistance; print\\(''All imports OK''\\); print\\(f''torch {torch.__version__}, CUDA: {torch.cuda.is_available\\(\\)}''\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import torch; print\\(torch.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -c \"import torch; import cv2, PIL, paddle, paddleocr, torchvision, transformers, streamlit, pandas, rapidfuzz, requests, editdistance; print\\(''All imports OK''\\); print\\(f''torch {torch.__version__}, CUDA: {torch.cuda.is_available\\(\\)}''\\)\")"
+    ]
+  }
+}
