@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout *)",
+      "Bash(.venv/Scripts/python.exe -m pytest*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(.venv/Scripts/python.exe -m ruff*)",
+      "Bash(grep*)",
+      "Bash(git merge*)",
+      "Bash(ls*)",
+      "Bash(head*)",
+      "Bash(git log*)",
+      "Bash(git push*)",
+      "Bash(gh pr*)",
+      "Bash(gh api*)",
+      "Bash(git push)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\maxim\\python\\Computer_Vision\\CV_Mini_Projet\\data",
+      "c:\\Users\\maxim\\python\\Computer_Vision\\CV_Mini_Projet\\docs\\tasks"
+    ]
+  }
+}
