@@ -37,8 +37,87 @@ def init_detector(model_name: str = "paddleocr"):
     )
 
 
+def _polygon_area(points: list[list[float]]) -> float:
+    """Compute the area of a polygon using the Shoelace formula.
+
+    Args:
+        points: List of [x, y] coordinate pairs forming the polygon.
+
+    Returns:
+        Absolute area of the polygon.
+    """
+    n = len(points)
+    area = 0.0
+    for i in range(n):
+        j = (i + 1) % n
+        area += points[i][0] * points[j][1]
+        area -= points[j][0] * points[i][1]
+    return abs(area) / 2.0
+
+
+def filter_small_regions(
+    regions: list[dict], min_area: float = 100,
+) -> list[dict]:
+    """Remove bounding boxes whose area is below *min_area*.
+
+    The area is computed from the 4-point polygon using the Shoelace formula.
+
+    Args:
+        regions: List of dicts with key ``bbox`` (4-point polygon).
+        min_area: Minimum polygon area to keep a region.
+
+    Returns:
+        Filtered list of region dicts.
+    """
+    return [r for r in regions if _polygon_area(r["bbox"]) >= min_area]
+
+
+def filter_by_aspect_ratio(
+    regions: list[dict],
+    min_ratio: float = 0.1,
+    max_ratio: float = 10.0,
+) -> list[dict]:
+    """Remove regions whose width/height aspect ratio is outside bounds.
+
+    Width and height are derived from the axis-aligned bounding rectangle
+    of the 4-point polygon.
+
+    Args:
+        regions: List of dicts with key ``bbox`` (4-point polygon).
+        min_ratio: Minimum width/height ratio (inclusive).
+        max_ratio: Maximum width/height ratio (inclusive).
+
+    Returns:
+        Filtered list of region dicts.
+    """
+    filtered: list[dict] = []
+    for r in regions:
+        xs = [p[0] for p in r["bbox"]]
+        ys = [p[1] for p in r["bbox"]]
+        w = max(xs) - min(xs)
+        h = max(ys) - min(ys)
+        if h == 0.0:
+            continue
+        ratio = w / h
+        if min_ratio <= ratio <= max_ratio:
+            filtered.append(r)
+    return filtered
+
+
+# Default thresholds for detection filtering (§R2 — no hardcoding)
+CONFIDENCE_THRESHOLD: float = 0.5
+MIN_REGION_AREA: float = 100.0
+MIN_ASPECT_RATIO: float = 0.1
+MAX_ASPECT_RATIO: float = 10.0
+
+
 def detect_text_regions(
-    image: np.ndarray, detector=None
+    image: np.ndarray,
+    detector=None,
+    confidence_threshold: float = CONFIDENCE_THRESHOLD,
+    min_area: float = MIN_REGION_AREA,
+    min_ratio: float = MIN_ASPECT_RATIO,
+    max_ratio: float = MAX_ASPECT_RATIO,
 ) -> list[dict]:
     """Detect text regions in an image.
 
@@ -46,6 +125,10 @@ def detect_text_regions(
         image: Input image in BGR format.
         detector: Initialized detector (from init_detector).
             If None, a default detector is initialized.
+        confidence_threshold: Minimum confidence to keep a detection.
+        min_area: Minimum polygon area to keep a detection.
+        min_ratio: Minimum width/height aspect ratio.
+        max_ratio: Maximum width/height aspect ratio.
 
     Returns:
         List of dicts with keys 'bbox' (4-point polygon) and
@@ -77,7 +160,13 @@ def detect_text_regions(
                     else DEFAULT_DET_CONFIDENCE
                 )
                 confidence = max(0.0, min(1.0, confidence))
-                regions.append({"bbox": points, "confidence": confidence})
+                if confidence >= confidence_threshold:
+                    regions.append({"bbox": points, "confidence": confidence})
+
+    regions = filter_small_regions(regions, min_area=min_area)
+    regions = filter_by_aspect_ratio(
+        regions, min_ratio=min_ratio, max_ratio=max_ratio,
+    )
 
     return regions
 
