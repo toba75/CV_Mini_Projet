@@ -167,16 +167,21 @@ class TestLimitesSection:
 
     def test_at_least_3_limites(self, readme_content):
         """Vérifier qu'il y a au moins 3 items de limites (puces Markdown)."""
-        lower = readme_content.lower()
-        limites_start = lower.find("limite")
-        assert limites_start != -1, "Section 'Limites' introuvable"
+        lines = readme_content.split("\n")
 
-        # Extraire le texte après "limites" jusqu'à la prochaine section (##)
-        after_limites = readme_content[limites_start:]
-        lines = after_limites.split("\n")[1:]  # skip the header line
+        # Trouver la ligne de heading contenant "limite"
+        limites_line_idx = None
+        for i, line in enumerate(lines):
+            stripped = line.strip().lower()
+            if stripped.startswith("#") and "limite" in stripped:
+                limites_line_idx = i
+                break
 
+        assert limites_line_idx is not None, "Section 'Limites' introuvable"
+
+        # Compter les puces après la section limites
         bullet_count = 0
-        for line in lines:
+        for line in lines[limites_line_idx + 1:]:
             stripped = line.strip()
             if stripped.startswith("## "):
                 break
