@@ -24,7 +24,6 @@ from src.detect_text import (
 )
 from src.preprocess import apply_clahe, enhance_for_difficult_text
 
-
 # ---------------------------------------------------------------------------
 # Synthetic image builders
 # ---------------------------------------------------------------------------

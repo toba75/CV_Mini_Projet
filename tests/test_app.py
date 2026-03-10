@@ -239,9 +239,18 @@ class TestPrepareInventoryDataframe:
         from src.app import prepare_inventory_dataframe
         result = {
             "books": [
-                {"spine_id": 1, "raw_text": "a", "title": "T1", "author": "A1", "isbn": None, "confidence": 0.5},
-                {"spine_id": 2, "raw_text": "b", "title": "T2", "author": "A2", "isbn": None, "confidence": 0.7},
-                {"spine_id": 3, "raw_text": "c", "title": "T3", "author": "A3", "isbn": "X", "confidence": 0.9},
+                {
+                    "spine_id": 1, "raw_text": "a", "title": "T1",
+                    "author": "A1", "isbn": None, "confidence": 0.5,
+                },
+                {
+                    "spine_id": 2, "raw_text": "b", "title": "T2",
+                    "author": "A2", "isbn": None, "confidence": 0.7,
+                },
+                {
+                    "spine_id": 3, "raw_text": "c", "title": "T3",
+                    "author": "A3", "isbn": "X", "confidence": 0.9,
+                },
             ],
         }
         df = prepare_inventory_dataframe(result)

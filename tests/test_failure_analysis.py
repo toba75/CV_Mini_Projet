@@ -9,7 +9,6 @@ from src.failure_analysis import (
     generate_failure_report,
 )
 
-
 # ---------------------------------------------------------------------------
 # categorize_failure
 # ---------------------------------------------------------------------------
@@ -119,8 +118,14 @@ class TestAnalyzeFailures:
 
     def test_worst_per_category_contains_image_name(self):
         per_image = [
-            {"image": "bad_seg.jpg", "detection_rate": 0.1, "cer": 0.1, "identification_rate": 0.8},
-            {"image": "worse_seg.jpg", "detection_rate": 0.05, "cer": 0.1, "identification_rate": 0.8},
+            {
+                "image": "bad_seg.jpg", "detection_rate": 0.1,
+                "cer": 0.1, "identification_rate": 0.8,
+            },
+            {
+                "image": "worse_seg.jpg", "detection_rate": 0.05,
+                "cer": 0.1, "identification_rate": 0.8,
+            },
         ]
         result = analyze_failures(self._make_eval_results(per_image))
         # worst segmentation = lowest detection_rate
@@ -171,7 +176,9 @@ class TestGenerateFailureReport:
 
     def test_empty_analysis_raises(self):
         with pytest.raises(ValueError):
-            generate_failure_report({"categories": {}, "worst_per_category": {}, "total_failures": 0})
+            generate_failure_report(
+                {"categories": {}, "worst_per_category": {}, "total_failures": 0}
+            )
 
 
 # ---------------------------------------------------------------------------

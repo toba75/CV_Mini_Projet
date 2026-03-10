@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 from src.detect_text import correct_orientation, detect_text_regions, init_detector
-from src.ocr import init_ocr_engine, recognize_text, _aggregate_ocr_results
+from src.ocr import _aggregate_ocr_results, init_ocr_engine, recognize_text
 from src.postprocess import identify_book, postprocess_spine
 from src.preprocess import preprocess
 from src.segment import segment
