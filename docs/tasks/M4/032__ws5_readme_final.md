@@ -1,6 +1,6 @@
 # Tâche — Rédaction du README final
 
-Statut : TODO
+Statut : DONE
 Ordre : 032
 Workstream : WS5
 Milestone : M4
@@ -40,28 +40,28 @@ Rédiger un `README.md` complet à la racine du projet couvrant : installation, 
 - Ajout d'un test vérifiant l'existence et la structure minimale du README.
 
 ## Critères d'acceptation
-- [ ] Fichier `README.md` présent à la racine du projet.
-- [ ] Section installation avec commandes `pip install` exactes.
-- [ ] Section architecture avec schéma du pipeline (6 étapes).
-- [ ] Section stack technique listant les composants principaux.
-- [ ] Section utilisation avec exemples de commande (pipeline CLI + Streamlit).
-- [ ] Section résultats avec tableau de métriques (taux détection, CER, taux identification, temps).
-- [ ] Section limites avec au moins 3 limites identifiées.
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords.
-- [ ] Suite de tests verte après implémentation.
-- [ ] `ruff check` passe sans erreur.
+- [x] Fichier `README.md` présent à la racine du projet.
+- [x] Section installation avec commandes `pip install` exactes.
+- [x] Section architecture avec schéma du pipeline (6 étapes).
+- [x] Section stack technique listant les composants principaux.
+- [x] Section utilisation avec exemples de commande (pipeline CLI + Streamlit).
+- [x] Section résultats avec tableau de métriques (taux détection, CER, taux identification, temps).
+- [x] Section limites avec au moins 3 limites identifiées.
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords.
+- [x] Suite de tests verte après implémentation.
+- [x] `ruff check` passe sans erreur.
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/032-readme-final` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/032-readme-final` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS-5] #032 RED: <résumé>` (fichiers de tests uniquement).
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS-5] #032 GREEN: <résumé>`.
+- [x] Branche `task/032-readme-final` créée depuis `milestone/M4`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS-5] #032 RED: tests pour README final (existence, sections, métriques, limites)`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS-5] #032 GREEN: README final rédigé`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS-5] #032 — Rédaction du README final`.
