@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 from src.detect_text import correct_orientation, detect_text_regions, init_detector
-from src.ocr import init_ocr_engine, recognize_text, _aggregate_ocr_results
+from src.ocr import _aggregate_ocr_results, init_ocr_engine, recognize_text
 from src.postprocess import identify_book, postprocess_spine
 from src.preprocess import preprocess
 from src.segment import segment
@@ -15,6 +15,8 @@ from src.segment import segment
 logger = logging.getLogger(__name__)
 
 _VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
+
+_DEFAULT_OUTPUT_DIR = "outputs"
 
 
 def run_pipeline(
@@ -166,3 +168,16 @@ def export_csv(result: dict, output_path: str | Path) -> Path:
             writer.writerow(book)
 
     return output_path
+
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 2:
+        sys.stderr.write("Usage: python -m src.pipeline <image_path> [output_dir]\n")
+        sys.exit(1)
+
+    img = sys.argv[1]
+    out = sys.argv[2] if len(sys.argv) > 2 else _DEFAULT_OUTPUT_DIR
+    result = run_pipeline(img, output_dir=out)
+    sys.stdout.write(json.dumps(result, indent=2, ensure_ascii=False) + "\n")

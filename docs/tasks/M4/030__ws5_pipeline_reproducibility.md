@@ -1,6 +1,6 @@
 # Tâche — Vérification reproductibilité du pipeline
 
-Statut : TODO
+Statut : DONE
 Ordre : 030
 Workstream : WS5
 Milestone : M4
@@ -32,26 +32,26 @@ Valider que le pipeline complet s'exécute sans erreur depuis une installation p
 - Test que les répertoires de sortie sont créés automatiquement.
 
 ## Critères d'acceptation
-- [ ] `pip install -r requirements.txt` s'exécute sans erreur sur Python 3.10+.
-- [ ] `python -m src.pipeline <image_path>` produit un fichier JSON dans `outputs/`.
-- [ ] Le JSON de sortie est valide et contient les clés attendues (titre, auteur, confiance).
-- [ ] Un test d'intégration valide le pipeline de bout en bout sur une image synthétique.
-- [ ] Aucune variable d'environnement requise non documentée.
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords.
-- [ ] Suite de tests verte après implémentation.
-- [ ] `ruff check` passe sans erreur.
+- [x] `pip install -r requirements.txt` s'exécute sans erreur sur Python 3.10+.
+- [x] `python -m src.pipeline <image_path>` produit un fichier JSON dans `outputs/`.
+- [x] Le JSON de sortie est valide et contient les clés attendues (titre, auteur, confiance).
+- [x] Un test d'intégration valide le pipeline de bout en bout sur une image synthétique.
+- [x] Aucune variable d'environnement requise non documentée.
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords.
+- [x] Suite de tests verte après implémentation.
+- [x] `ruff check` passe sans erreur.
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/030-pipeline-reproducibility` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/030-pipeline-reproducibility` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS-5] #030 RED: <résumé>` (fichiers de tests uniquement).
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS-5] #030 GREEN: <résumé>`.
+- [x] Branche `task/030-pipeline-reproducibility` créée depuis `main`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS-5] #030 RED: tests reproductibilité pipeline`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS-5] #030 GREEN: vérification reproductibilité pipeline`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS-5] #030 — Vérification reproductibilité du pipeline`.

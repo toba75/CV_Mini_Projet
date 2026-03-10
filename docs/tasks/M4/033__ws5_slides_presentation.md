@@ -1,6 +1,6 @@
 # Tâche — Création des diapositives de soutenance
 
-Statut : TODO
+Statut : DONE
 Ordre : 033
 Workstream : WS5
 Milestone : M4
@@ -47,27 +47,26 @@ Créer un jeu de ~10 diapositives Markdown (ou export PDF) dans `docs/slides/` c
   - « Comment améliorer les résultats ? »
 
 ## Critères d'acceptation
-- [ ] Répertoire `docs/slides/` créé avec le fichier de diapositives.
-- [ ] 10 diapositives couvrant le plan imposé (titre → conclusion).
-- [ ] Schéma d'architecture du pipeline inclus dans les slides.
-- [ ] Tableau de métriques avec résultats quantitatifs réels inclus.
-- [ ] Notes de présentation avec réponses aux 4 questions probables.
-- [ ] Contenu cohérent avec le README et les résultats d'évaluation.
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords.
-- [ ] Suite de tests verte après implémentation.
-- [ ] `ruff check` passe sans erreur.
+- [x] Répertoire `docs/slides/` créé avec le fichier de diapositives.
+- [x] 10 diapositives couvrant le plan imposé (titre → conclusion).
+- [x] Schéma d'architecture du pipeline inclus dans les slides.
+- [x] Tableau de métriques avec résultats quantitatifs réels inclus.
+- [x] Notes de présentation avec réponses aux 4 questions probables.
+- [x] Contenu cohérent avec le README et les résultats d'évaluation.
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords.
+- [x] Suite de tests verte après implémentation.
+- [x] `ruff check` passe sans erreur.
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/033-slides-presentation` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/033-slides-presentation` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS-5] #033 RED: <résumé>` (fichiers de tests uniquement).
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS-5] #033 GREEN: <résumé>`.
-- [ ] **Pull Request ouverte** vers `main` : `[WS-5] #033 — Création des diapositives de soutenance`.
+- [x] Branche `task/033-slides-presentation` créée depuis `milestone/M4`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS-5] #033 RED: tests pour diapositives de soutenance`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS-5] #033 GREEN: diapositives de soutenance créées`.

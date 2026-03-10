@@ -156,18 +156,11 @@ def evaluate_dataset(
     # Load ground truth CSV via load_ground_truth for consistent validation
     csv_files = list(gt_path.glob("*.csv"))
     if not csv_files:
-        return {
-            "per_image": [],
-            "average": {"detection_rate": 0.0, "cer": 0.0, "identification_rate": 0.0},
-        }
+        raise ValueError(
+            f"No CSV ground truth files found in {gt_path}"
+        )
 
-    try:
-        df = load_ground_truth(str(csv_files[0]))
-    except ValueError:
-        return {
-            "per_image": [],
-            "average": {"detection_rate": 0.0, "cer": 0.0, "identification_rate": 0.0},
-        }
+    df = load_ground_truth(str(csv_files[0]))
     if df.empty:
         return {
             "per_image": [],

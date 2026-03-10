@@ -1,5 +1,6 @@
 # Image processing
 opencv-python>=4.8,<5
+numpy>=1.24,<2
 Pillow>=10.0,<11
 
 # OCR engines
@@ -19,9 +20,6 @@ requests>=2.31,<3
 
 # Demo interface
 streamlit>=1.30,<2
-
-# Evaluation
-editdistance>=0.6,<1
 
 # Linting & testing
 ruff>=0.4,<1

@@ -10,7 +10,6 @@ import pytest
 
 from src.pipeline import export_csv, export_json, run_pipeline
 
-
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
 # ---------------------------------------------------------------------------
@@ -86,10 +85,16 @@ class TestRunPipeline:
         mock_segment.return_value = [FAKE_SPINE]
         mock_init_detector.return_value = MagicMock()
         mock_init_ocr.return_value = MagicMock()
-        mock_detect.return_value = [{"bbox": [[0, 0], [50, 0], [50, 20], [0, 20]], "confidence": 0.9}]
+        mock_detect.return_value = [
+            {"bbox": [[0, 0], [50, 0], [50, 20], [0, 20]], "confidence": 0.9}
+        ]
         mock_correct.return_value = FAKE_SPINE
-        mock_recognize.return_value = [{"text": "Le Petit Prince", "confidence": 0.9}]
-        mock_aggregate.return_value = {"text": "Le Petit Prince", "confidence": 0.9, "engine": "paddleocr"}
+        mock_recognize.return_value = [
+            {"text": "Le Petit Prince", "confidence": 0.9}
+        ]
+        mock_aggregate.return_value = {
+            "text": "Le Petit Prince", "confidence": 0.9, "engine": "paddleocr"
+        }
         mock_postprocess.return_value = {
             "raw_text": "Le Petit Prince",
             "clean_text": "Le Petit Prince",
