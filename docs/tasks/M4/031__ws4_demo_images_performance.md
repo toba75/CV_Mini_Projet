@@ -1,6 +1,6 @@
 # Tâche — Préparation images de démo et validation performance
 
-Statut : TODO
+Statut : DONE
 Ordre : 031
 Workstream : WS4
 Milestone : M4
@@ -32,26 +32,26 @@ Sélectionner et valider 3-4 images d'étagères produisant des résultats OCR c
 - Vérification que `app.py` (Streamlit) charge et traite les images de démo sans erreur.
 
 ## Critères d'acceptation
-- [ ] 3-4 images de démo présentes dans `data/demo/`.
-- [ ] Chaque image produit au moins 3 livres correctement identifiés par le pipeline.
-- [ ] Temps d'exécution du pipeline < 30s par image (mesuré et documenté).
-- [ ] Fichier `data/demo/expected_results.json` décrivant les résultats attendus.
-- [ ] L'interface Streamlit charge et traite les images de démo sans erreur.
-- [ ] Tests couvrent les scénarios nominaux + erreurs + bords.
-- [ ] Suite de tests verte après implémentation.
-- [ ] `ruff check` passe sans erreur.
+- [x] 3-4 images de démo présentes dans `data/demo/`.
+- [x] Chaque image produit au moins 3 livres correctement identifiés par le pipeline.
+- [x] Temps d'exécution du pipeline < 30s par image (mesuré et documenté).
+- [x] Fichier `data/demo/expected_results.json` décrivant les résultats attendus.
+- [x] L'interface Streamlit charge et traite les images de démo sans erreur.
+- [x] Tests couvrent les scénarios nominaux + erreurs + bords.
+- [x] Suite de tests verte après implémentation.
+- [x] `ruff check` passe sans erreur.
 
 ## Pré-condition de démarrage
 - **Tous les tests existants sont GREEN** avant de commencer.
 - **Créer une branche dédiée** `task/031-demo-images-performance` depuis `main`.
 
 ## Checklist de fin de tâche
-- [ ] Branche `task/031-demo-images-performance` créée depuis `main`.
-- [ ] Tests RED écrits avant implémentation.
-- [ ] **Commit RED** : `[WS-4] #031 RED: <résumé>` (fichiers de tests uniquement).
-- [ ] Tests GREEN passants et reproductibles.
-- [ ] Critères d'acceptation tous satisfaits.
-- [ ] `ruff check src/ tests/` passe sans erreur.
-- [ ] Fichier de tâche mis à jour (statut DONE, critères cochés).
-- [ ] **Commit GREEN** : `[WS-4] #031 GREEN: <résumé>`.
+- [x] Branche `task/031-demo-images-performance` créée depuis `milestone/M4`.
+- [x] Tests RED écrits avant implémentation.
+- [x] **Commit RED** : `[WS-4] #031 RED: tests images de démo et performance`.
+- [x] Tests GREEN passants et reproductibles.
+- [x] Critères d'acceptation tous satisfaits.
+- [x] `ruff check src/ tests/` passe sans erreur.
+- [x] Fichier de tâche mis à jour (statut DONE, critères cochés).
+- [x] **Commit GREEN** : `[WS-4] #031 GREEN: images de démo et validation performance`.
 - [ ] **Pull Request ouverte** vers `main` : `[WS-4] #031 — Préparation images de démo et validation performance`.

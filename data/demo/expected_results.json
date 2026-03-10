@@ -1,0 +1,31 @@
+{
+  "images": [
+    {
+      "image": "shelf_demo_01.png",
+      "description": "Synthetic demo shelf image 1 — solid color placeholder for pipeline testing",
+      "expected_books": [
+        {"title": "Demo Book A1"},
+        {"title": "Demo Book A2"},
+        {"title": "Demo Book A3"}
+      ]
+    },
+    {
+      "image": "shelf_demo_02.png",
+      "description": "Synthetic demo shelf image 2 — solid color placeholder for pipeline testing",
+      "expected_books": [
+        {"title": "Demo Book B1"},
+        {"title": "Demo Book B2"},
+        {"title": "Demo Book B3"}
+      ]
+    },
+    {
+      "image": "shelf_demo_03.png",
+      "description": "Synthetic demo shelf image 3 — solid color placeholder for pipeline testing",
+      "expected_books": [
+        {"title": "Demo Book C1"},
+        {"title": "Demo Book C2"},
+        {"title": "Demo Book C3"}
+      ]
+    }
+  ]
+}

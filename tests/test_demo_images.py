@@ -159,7 +159,7 @@ class TestExpectedResultsStructure:
 class TestDemoBenchmark:
     """#031 — benchmark measures pipeline execution time per demo image."""
 
-    @patch("src.pipeline.run_pipeline")
+    @patch("src.demo_benchmark.run_pipeline")
     def test_benchmark_demo_measures_time(
         self, mock_run_pipeline: MagicMock
     ) -> None:
@@ -183,7 +183,7 @@ class TestDemoBenchmark:
             assert isinstance(entry["processing_time_s"], (int, float))
             assert entry["processing_time_s"] >= 0
 
-    @patch("src.pipeline.run_pipeline")
+    @patch("src.demo_benchmark.run_pipeline")
     def test_benchmark_demo_under_30s(self, mock_run_pipeline: MagicMock) -> None:
         """Each demo image processing time must be < 30s (mocked)."""
         from src.demo_benchmark import benchmark_demo_images
@@ -211,7 +211,7 @@ class TestDemoBenchmark:
                 f"Image {entry['image']} took {entry['processing_time_s']}s (>= 30s)"
             )
 
-    @patch("src.pipeline.run_pipeline")
+    @patch("src.demo_benchmark.run_pipeline")
     def test_benchmark_returns_num_books(self, mock_run_pipeline: MagicMock) -> None:
         """Benchmark entries include num_books detected."""
         from src.demo_benchmark import benchmark_demo_images
@@ -238,7 +238,7 @@ class TestDemoBenchmark:
             assert "num_books" in entry
             assert isinstance(entry["num_books"], int)
 
-    @patch("src.pipeline.run_pipeline")
+    @patch("src.demo_benchmark.run_pipeline")
     def test_benchmark_handles_pipeline_error(
         self, mock_run_pipeline: MagicMock
     ) -> None:
@@ -274,7 +274,7 @@ class TestStreamlitDemoLoading:
                 f"Image {img_path.name} has unsupported extension"
             )
 
-    @patch("src.pipeline.run_pipeline")
+    @patch("src.demo_benchmark.run_pipeline")
     def test_pipeline_accepts_demo_image_paths(
         self, mock_run_pipeline: MagicMock
     ) -> None:
