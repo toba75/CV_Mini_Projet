@@ -166,3 +166,16 @@ def export_csv(result: dict, output_path: str | Path) -> Path:
             writer.writerow(book)
 
     return output_path
+
+
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 2:
+        sys.stderr.write("Usage: python -m src.pipeline <image_path> [output_dir]\n")
+        sys.exit(1)
+
+    img = sys.argv[1]
+    out = sys.argv[2] if len(sys.argv) > 2 else "outputs"
+    result = run_pipeline(img, output_dir=out)
+    sys.stdout.write(json.dumps(result, indent=2, ensure_ascii=False) + "\n")

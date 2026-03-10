@@ -9,8 +9,6 @@ Validates:
 
 import json
 import re
-import subprocess
-import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -109,15 +107,8 @@ class TestRequirementsTxt:
     def test_key_dependencies_present(self) -> None:
         """Core dependencies needed by the pipeline must be listed."""
         content = REQUIREMENTS_TXT.read_text(encoding="utf-8").lower()
-        required_deps = [
-            "opencv-python",
-            "numpy",
-            "paddleocr",
-            "torch",
-            "pathlib" not in content or True,  # pathlib is stdlib, skip
-        ]
         # Check actual package names
-        for dep in ["opencv-python", "paddleocr", "torch", "pytest", "ruff"]:
+        for dep in ["opencv-python", "numpy", "paddleocr", "torch", "pytest", "ruff"]:
             assert dep in content, f"Missing required dependency: {dep}"
 
     def test_numpy_dependency_present(self) -> None:
@@ -216,6 +207,7 @@ class TestPipelineCli:
         assert loaded["image"] == "test_shelf.jpg"
         assert isinstance(loaded["books"], list)
         assert len(loaded["books"]) >= 1
+        assert result["image"] == "test_shelf.jpg"
 
     @patch("src.pipeline.identify_book")
     @patch("src.pipeline.postprocess_spine")
