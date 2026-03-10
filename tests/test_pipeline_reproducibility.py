@@ -32,39 +32,6 @@ FAKE_IMAGE = np.zeros((200, 400, 3), dtype=np.uint8)
 FAKE_SPINE = np.zeros((200, 60, 3), dtype=np.uint8)
 
 
-def _mock_pipeline_deps() -> dict:
-    """Return a dict of patch targets and their return values for full pipeline mocking."""
-    return {
-        "src.pipeline.preprocess": FAKE_IMAGE,
-        "src.pipeline.segment": [FAKE_SPINE],
-        "src.pipeline.init_detector": MagicMock(),
-        "src.pipeline.init_ocr_engine": MagicMock(),
-        "src.pipeline.detect_text_regions": [
-            {"bbox": [[0, 0], [50, 0], [50, 20], [0, 20]], "confidence": 0.9}
-        ],
-        "src.pipeline.correct_orientation": FAKE_SPINE,
-        "src.pipeline.recognize_text": [{"text": "Test Book", "confidence": 0.85}],
-        "src.pipeline._aggregate_ocr_results": {
-            "text": "Test Book",
-            "confidence": 0.85,
-            "engine": "paddleocr",
-        },
-        "src.pipeline.postprocess_spine": {
-            "raw_text": "Test Book",
-            "clean_text": "Test Book",
-            "title": "Test Book",
-            "author": None,
-        },
-        "src.pipeline.identify_book": {
-            "title": "Test Book",
-            "author": "Test Author",
-            "isbn": "1234567890",
-            "confidence": 0.9,
-            "provider": "openlibrary",
-        },
-    }
-
-
 # ---------------------------------------------------------------------------
 # TestRequirementsTxt — structure du fichier requirements.txt
 # ---------------------------------------------------------------------------

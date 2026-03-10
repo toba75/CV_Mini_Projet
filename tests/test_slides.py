@@ -2,7 +2,8 @@
 
 import pathlib
 
-SLIDES_DIR = pathlib.Path("docs/slides")
+_PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
+SLIDES_DIR = _PROJECT_ROOT / "docs" / "slides"
 SOUTENANCE_FILE = SLIDES_DIR / "soutenance.md"
 NOTES_FILE = SLIDES_DIR / "notes_orateur.md"
 

@@ -17,8 +17,6 @@ logger = logging.getLogger(__name__)
 DEMO_DIR = Path(__file__).resolve().parent.parent / "data" / "demo"
 EXPECTED_RESULTS_PATH = DEMO_DIR / "expected_results.json"
 
-VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-
 
 def _load_demo_image_paths() -> list[Path]:
     """Return sorted list of demo image paths from expected_results.json.

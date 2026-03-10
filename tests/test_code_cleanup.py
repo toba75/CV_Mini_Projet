@@ -18,8 +18,9 @@ from pathlib import Path
 
 import pytest
 
-SRC_DIR = Path("src")
-TESTS_DIR = Path("tests")
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+SRC_DIR = _PROJECT_ROOT / "src"
+TESTS_DIR = _PROJECT_ROOT / "tests"
 # app.py is excluded from print() check because it uses Streamlit (st.*)
 PRINT_EXCLUDED_FILES = {"app.py"}
 
@@ -157,19 +158,3 @@ class TestRuffCompliance:
             text=True,
         )
         assert result.returncode == 0, f"Lines too long found:\n{result.stdout}"
-
-
-class TestNoRegression:
-    """#029 — Full test suite must still pass (no regression)."""
-
-    def test_full_suite_passes(self):
-        """Running pytest on the full suite yields zero failures."""
-        result = subprocess.run(
-            ["python", "-m", "pytest", "tests/", "-q", "--tb=no",
-             "--ignore=tests/test_code_cleanup.py"],
-            capture_output=True,
-            text=True,
-        )
-        assert result.returncode == 0, (
-            f"Test suite has failures:\n{result.stdout}\n{result.stderr}"
-        )
