@@ -114,7 +114,7 @@ class TestNotesOrateurFile:
 
     def test_notes_contains_question_ocr_model(self):
         content = NOTES_FILE.read_text(encoding="utf-8")
-        assert "pourquoi" in content.lower() and "ocr" in content.upper(), (
+        assert "pourquoi" in content.lower() and "OCR" in content.upper(), (
             "Doit contenir la question sur le choix du modèle OCR"
         )
 
