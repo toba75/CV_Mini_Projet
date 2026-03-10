@@ -5,7 +5,6 @@ import pytest
 
 from src.visualization import draw_spine_boxes, segment_with_positions
 
-
 # ---------------------------------------------------------------------------
 # Task 020 — Bounding box visualization
 # ---------------------------------------------------------------------------

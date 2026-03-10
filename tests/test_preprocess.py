@@ -1,7 +1,7 @@
 """Tests for the image preprocessing module (CLAHE pipeline)."""
 
-import numpy as np
 import cv2
+import numpy as np
 import pytest
 
 from src.preprocess import (

@@ -18,7 +18,6 @@ from src.postprocess import (
     split_title_author,
 )
 
-
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
 # ---------------------------------------------------------------------------
@@ -518,8 +517,14 @@ class TestFuzzyMatchTitle:
 
     def test_best_match_returned(self) -> None:
         candidates = [
-            {"title": "Le Petit Prince", "author": "Saint-Exupéry", "isbn": "123", "provider": "openlibrary"},
-            {"title": "Le Grand Meaulnes", "author": "Alain-Fournier", "isbn": "456", "provider": "openlibrary"},
+            {
+                "title": "Le Petit Prince", "author": "Saint-Exupéry",
+                "isbn": "123", "provider": "openlibrary",
+            },
+            {
+                "title": "Le Grand Meaulnes", "author": "Alain-Fournier",
+                "isbn": "456", "provider": "openlibrary",
+            },
         ]
         result = fuzzy_match_title("Le Petit Prince", candidates)
         assert result is not None
@@ -529,7 +534,11 @@ class TestFuzzyMatchTitle:
 
     def test_returns_none_when_below_threshold(self) -> None:
         candidates = [
-            {"title": "Completely Different Book", "author": "Author", "isbn": "789", "provider": "openlibrary"},
+            {
+                "title": "Completely Different Book",
+                "author": "Author", "isbn": "789",
+                "provider": "openlibrary",
+            },
         ]
         result = fuzzy_match_title("Le Petit Prince", candidates, threshold=95.0)
         assert result is None
@@ -540,7 +549,10 @@ class TestFuzzyMatchTitle:
 
     def test_empty_text_returns_none(self) -> None:
         candidates = [
-            {"title": "Le Petit Prince", "author": "Saint-Exupéry", "isbn": "123", "provider": "openlibrary"},
+            {
+                "title": "Le Petit Prince", "author": "Saint-Exupéry",
+                "isbn": "123", "provider": "openlibrary",
+            },
         ]
         result = fuzzy_match_title("", candidates)
         assert result is None
@@ -557,7 +569,12 @@ class TestIdentifyBook:
     @patch("src.postprocess.search_book")
     def test_orchestration_returns_enriched_dict(self, mock_search: MagicMock) -> None:
         mock_search.return_value = [
-            {"title": "Le Petit Prince", "author": "Saint-Exupéry", "isbn": "9782070612758", "provider": "openlibrary"},
+            {
+                "title": "Le Petit Prince",
+                "author": "Saint-Exupéry",
+                "isbn": "9782070612758",
+                "provider": "openlibrary",
+            },
         ]
         result = identify_book("Le Petit Prince")
         assert result is not None
@@ -591,11 +608,22 @@ class TestIdentifyBooks:
     @patch("src.postprocess.search_book")
     def test_processes_list_correctly(self, mock_search: MagicMock) -> None:
         mock_search.return_value = [
-            {"title": "Le Petit Prince", "author": "Saint-Exupéry", "isbn": "123", "provider": "openlibrary"},
+            {
+                "title": "Le Petit Prince", "author": "Saint-Exupéry",
+                "isbn": "123", "provider": "openlibrary",
+            },
         ]
         spine_results = [
-            {"raw_text": "Le Petit Prince", "clean_text": "Le Petit Prince", "title": "Le Petit Prince", "author": None},
-            {"raw_text": "Les Misérables", "clean_text": "Les Misérables", "title": "Les Misérables", "author": None},
+            {
+                "raw_text": "Le Petit Prince",
+                "clean_text": "Le Petit Prince",
+                "title": "Le Petit Prince", "author": None,
+            },
+            {
+                "raw_text": "Les Misérables",
+                "clean_text": "Les Misérables",
+                "title": "Les Misérables", "author": None,
+            },
         ]
         results = identify_books(spine_results)
         assert isinstance(results, list)
