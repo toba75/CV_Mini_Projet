@@ -21,9 +21,6 @@ requests>=2.31,<3
 # Demo interface
 streamlit>=1.30,<2
 
-# Evaluation
-editdistance>=0.6,<1
-
 # Linting & testing
 ruff>=0.4,<1
 pytest>=8.0,<9

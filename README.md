@@ -53,7 +53,7 @@ Le fichier `requirements.txt` contient toutes les dépendances nécessaires (Ope
 | API bibliographique | Google Books API, Open Library API |
 | Tests | pytest |
 | Linter | ruff |
-| Évaluation | editdistance (CER), métriques custom |
+| Évaluation | rapidfuzz (CER via Levenshtein), métriques custom |
 
 ---
 

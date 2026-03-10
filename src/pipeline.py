@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 _VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
+_DEFAULT_OUTPUT_DIR = "outputs"
+
 
 def run_pipeline(
     image_path: str | Path,
@@ -176,6 +178,6 @@ if __name__ == "__main__":
         sys.exit(1)
 
     img = sys.argv[1]
-    out = sys.argv[2] if len(sys.argv) > 2 else "outputs"
+    out = sys.argv[2] if len(sys.argv) > 2 else _DEFAULT_OUTPUT_DIR
     result = run_pipeline(img, output_dir=out)
     sys.stdout.write(json.dumps(result, indent=2, ensure_ascii=False) + "\n")
