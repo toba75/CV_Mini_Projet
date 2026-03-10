@@ -26,7 +26,7 @@ Le texte vertical est un défi majeur sur les tranches de livres. Notre approche
 
 1. **Détection des bounding boxes orientées** : PaddleOCR en mode détection produit des boîtes englobantes avec un angle. Les tranches de livres ont souvent du texte à 90° (vertical, de bas en haut ou de haut en bas).
 
-2. **Analyse de l'angle médian** : nous calculons l'angle médian de toutes les bounding boxes détectées sur une tranche. Si cet angle est proche de ±90°, nous appliquons une rotation de l'image avant l'OCR.
+2. **Analyse de l'angle médian** : nous calculons l'angle médian de toutes les bounding boxes détectées sur une tranche. Si cet angle dépasse un seuil de 2°, nous appliquons une rotation proportionnelle de l'image avant l'OCR.
 
 3. **Rotation automatique** : le module `detect_text.py` corrige l'orientation en appliquant une rotation inverse pour ramener le texte à l'horizontale. Cela améliore significativement le CER sur les tranches à texte vertical.
 
@@ -58,7 +58,7 @@ Plusieurs pistes d'amélioration ont été identifiées :
 
 ### Court terme (réalisable rapidement)
 - **Fine-tuning du modèle OCR** sur un corpus de tranches de livres français pour améliorer la reconnaissance des polices courantes en édition.
-- **Augmentation du jeu de données** d'évaluation (actuellement 20-30 images) pour des métriques plus robustes.
+- **Augmentation du jeu de données** d'évaluation (actuellement 15 images) pour des métriques plus robustes.
 - **Optimisation des seuils** de segmentation et de détection par grid search sur le jeu de validation.
 
 ### Moyen terme

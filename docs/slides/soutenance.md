@@ -64,9 +64,9 @@ Image → Prétraitement → Segmentation → Détection texte
 
 ### Prétraitement (`preprocess.py`)
 
-- Chargement et redimensionnement (max 1500px de large) via OpenCV
+- Chargement et redimensionnement (max 1920px de large) via OpenCV
 - **CLAHE** sur canal L (espace LAB) pour améliorer le contraste
-- Correction de perspective par détection de quadrilatère
+- Correction de perspective disponible (détection de quadrilatère), appliquée si nécessaire
 
 ### Segmentation (`segment.py`)
 
@@ -88,8 +88,8 @@ Image → Prétraitement → Segmentation → Détection texte
 ### Correction d'orientation
 
 - Analyse de l'angle médian des bounding boxes détectées
-- Rotation automatique pour aligner le texte horizontalement
-- Gestion du texte vertical sur les tranches de livres (rotation 90°)
+- Rotation automatique selon l'angle médian détecté pour aligner le texte horizontalement
+- Gestion du texte incliné ou vertical sur les tranches de livres
 - Indispensable avant l'étape OCR pour maximiser la qualité de reconnaissance
 
 ---
@@ -121,7 +121,7 @@ Image → Prétraitement → Segmentation → Détection texte
 
 ### Enrichissement bibliographique
 
-- **Fuzzy matching** (ratio de similarité ≥ 80%) vers les API :
+- **Fuzzy matching** (ratio de similarité ≥ 60%) vers les API :
   - Google Books API
   - Open Library API
 - Récupération des métadonnées : titre complet, auteur, ISBN, éditeur
@@ -131,7 +131,7 @@ Image → Prétraitement → Segmentation → Détection texte
 
 ## Résultats quantitatifs
 
-### Métriques sur le jeu de test (20-30 images d'étagères)
+### Métriques sur le jeu de test (15 images d'étagères)
 
 | Métrique | Valeur |
 |---|---|
